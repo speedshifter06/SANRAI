@@ -1,0 +1,17 @@
+{
+  "name": "SANRAI Workflow Engine",
+  "short_name": "SANRAI",
+  "description": "Zero-friction workday OS for IT professionals.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#38bdf8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1157/1157077.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
