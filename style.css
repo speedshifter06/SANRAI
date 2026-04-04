@@ -148,7 +148,7 @@ footer {
     width: 100%; max-width: 650px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto;
 }
 .large-modal { max-width: 900px; }
-.scrollable-modal { padding-right: 10px;}
+.scrollable-modal { padding-right: 20px;}
 
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;}
 .modal-header h3 { font-size: 1.2rem; font-weight: 600; }
