@@ -189,7 +189,7 @@ footer {
 @media print {
     body { background: #fff !important; color: #000 !important; }
     .no-print, header, footer, .input-panel, .overlay, .close-btn, .search-bar-wrapper, .tabs, .action-row, .modal-header { display: none !important; }
-    .modal { position: static; background: none; display: block !important; padding: 0;}
+    .modal { position: static; background: none; padding: 0; }
     .modal-content { border: none; width: 100%; max-width: none; padding: 0; box-shadow: none; max-height: none;}
     .output-box { border: none; }
     .history-item { border: 1px solid #ccc; break-inside: avoid; margin-bottom: 20px;}
