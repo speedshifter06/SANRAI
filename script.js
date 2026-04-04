@@ -204,6 +204,23 @@ const Engine = {
             });
             
             const data = await response.json();
+            
+            // --- KOTHA ERROR CHECKING CODE ---
+            if (!response.ok) {
+                alert("Google API Error: " + (data.error ? data.error.message : "Unknown Error"));
+                btn.innerText = "✨ Auto-Structure with AI";
+                btn.disabled = false;
+                return; 
+            }
+
+            if (!data.candidates || !data.candidates[0].content) {
+                 alert("Google AI Error: Response blocked due to safety or empty output.");
+                 btn.innerText = "✨ Auto-Structure with AI";
+                 btn.disabled = false;
+                 return;
+            }
+            // ---------------------------------
+
             const aiOutput = data.candidates[0].content.parts[0].text;
             
             const extract = (tag1, tag2) => {
@@ -228,7 +245,8 @@ const Engine = {
             localStorage.removeItem('draft_rawInput');
 
         } catch (error) {
-            alert("Connection failed. Check API Key or Network.");
+            // Updated catch block to show exact network error
+            alert("Network Error: " + error.message);
         } finally {
             btn.innerText = "✨ Auto-Structure with AI";
             btn.disabled = false;
