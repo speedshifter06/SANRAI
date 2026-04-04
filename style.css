@@ -198,3 +198,5 @@ footer {
     .history-date { color: #000 !important; border-bottom: 1px solid #000; padding-bottom: 5px;}
     .editable-div { border: none; background: transparent; padding: 0;}
 }
+
+.modal { position: static; background: none; padding: 0; }
