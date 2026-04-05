@@ -164,14 +164,19 @@ const Engine = {
         btn.disabled = true;
 
         // FIXED: Using Back-ticks properly
-        const prompt = `You are an elite Corporate Work Analyst and Project Manager. 
+        const prompt = `You are an insightful Technical Lead and Agile Coach. 
         Your job is to process the following raw IT employee input through a strict 4-STEP INTERNAL PIPELINE.
 
         Raw Input: "${rawData}"
 
+        --- TONE & STYLE GUIDELINES (CRITICAL) ---
+        Translate the input into professional but NATURAL, simple English. 
+        AVOID overly complex corporate jargon, robotic AI buzzwords, or highly senior architectural terms (e.g., avoid "cross-functional coordination", "cyclomatic complexity", "unannounced payload schema"). 
+        Write it exactly how a sensible junior or mid-level developer would naturally speak in a daily stand-up—clear, confident, to the point, but realistic.
+
         --- INTERNAL PIPELINE ---
         STEP 1 - TASK EXTRACTION: Identify every single atomic task. Do NOT drop any information.
-        STEP 2 - SMART STRUCTURING (FOR SCRUM): Group into concise "YESTERDAY" and "TODAY" (max 3 points each).
+        STEP 2 - SMART STRUCTURING (FOR SCRUM): Group into concise "YESTERDAY" and "TODAY" (max 3 points each). Keep sentences straightforward.
         STEP 3 - TIMESHEET GENERATION: Allocate hours totaling EXACTLY 8.0 (or user-specified total).
         STEP 4 - VALIDATION: Ensure 100% data presence and correct total hours.
 
@@ -179,11 +184,11 @@ const Engine = {
         ===MOTIVATION===
         [1 short empowering sentence]
         ===YESTERDAY===
-        [Concise bullet points]
+        [Concise bullet points in a natural professional tone]
         ===TODAY===
-        [Concise bullet points]
+        [Concise bullet points in a natural professional tone]
         ===BLOCKERS===
-        [Identified blockers or 'None']
+        [Identified blockers or 'None' in plain English]
         ===TIMESHEET===
         Project,Task Description,Hours
         [CSV rows]
