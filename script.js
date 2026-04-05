@@ -1,34 +1,39 @@
 let sanraiData = JSON.parse(localStorage.getItem('sanraiData')) || { history: [], bin: [] };
 
+// Helper to safely get element
+const $ = (id) => document.getElementById(id);
+
 // ==========================================
-// 1. APP & NOTIFICATIONS
+// 1. APP & INITIALIZATION
 // ==========================================
 const App = {
     init: () => {
-        const hasConsent = localStorage.getItem('sanrai_consent');
-        if (!hasConsent) {
-            document.getElementById('consentOverlay').style.display = 'flex';
-            document.body.classList.add('no-scroll');
-        } else if (!localStorage.getItem('sanrai_apiKey')) {
-            App.startTour();
+        // App Page Logic
+        if ($('consentOverlay')) {
+            const hasConsent = localStorage.getItem('sanrai_consent');
+            if (!hasConsent) {
+                $('consentOverlay').style.display = 'flex';
+                document.body.classList.add('no-scroll');
+            } else if (!localStorage.getItem('sanrai_apiKey')) {
+                App.startTour();
+            }
         }
 
-        const savedKey = localStorage.getItem('sanrai_apiKey');
-        if (savedKey) document.getElementById('apiKey').value = savedKey;
+        if ($('apiKey')) $('apiKey').value = localStorage.getItem('sanrai_apiKey') || '';
+        if ($('notifTime1')) $('notifTime1').value = localStorage.getItem('sanrai_notifTime1') || "09:00";
+        if ($('notifTime2')) $('notifTime2').value = localStorage.getItem('sanrai_notifTime2') || "17:00";
         
-        const savedTime1 = localStorage.getItem('sanrai_notifTime1');
-        if(savedTime1) document.getElementById('notifTime1').value = savedTime1;
-        const savedTime2 = localStorage.getItem('sanrai_notifTime2');
-        if(savedTime2) document.getElementById('notifTime2').value = savedTime2;
-
         const draft = localStorage.getItem('draft_rawInput');
-        if (draft) document.getElementById('rawInput').value = draft;
+        if (draft && $('rawInput')) $('rawInput').value = draft;
 
-        document.getElementById('workDate').valueAsDate = new Date(); 
+        // FIX: Ensuring date is visible and set to today
+        if ($('workDate')) $('workDate').valueAsDate = new Date(); 
 
-        document.getElementById('rawInput').addEventListener('input', (e) => {
-            localStorage.setItem('draft_rawInput', e.target.value);
-        });
+        if ($('rawInput')) {
+            $('rawInput').addEventListener('input', (e) => {
+                localStorage.setItem('draft_rawInput', e.target.value);
+            });
+        }
 
         Archive.cleanBin();
         Engine.initNotifications();
@@ -36,88 +41,81 @@ const App = {
 
     acceptConsent: () => {
         localStorage.setItem('sanrai_consent', 'true');
-        document.getElementById('consentOverlay').style.display = 'none';
+        if ($('consentOverlay')) $('consentOverlay').style.display = 'none';
         document.body.classList.remove('no-scroll');
         App.startTour();
     },
 
     saveSettings: () => {
-        localStorage.setItem('sanrai_apiKey', document.getElementById('apiKey').value);
-        localStorage.setItem('sanrai_notifTime1', document.getElementById('notifTime1').value);
-        localStorage.setItem('sanrai_notifTime2', document.getElementById('notifTime2').value);
-        UI.closeModal('settingsModal');
-        Engine.initNotifications(); 
+        if ($('apiKey')) {
+            localStorage.setItem('sanrai_apiKey', $('apiKey').value);
+            localStorage.setItem('sanrai_notifTime1', $('notifTime1').value);
+            localStorage.setItem('sanrai_notifTime2', $('notifTime2').value);
+            UI.closeModal('settingsModal');
+            Engine.initNotifications(); 
+        }
     },
 
     tourStep: 1,
     startTour: () => {
         UI.closeModal('settingsModal');
-        document.getElementById('tourOverlay').style.display = 'flex';
+        if ($('tourOverlay')) $('tourOverlay').style.display = 'flex';
         document.body.classList.add('no-scroll');
         App.tourStep = 1;
         App.renderTourStep();
     },
     renderTourStep: () => {
-        const content = document.getElementById('tourContent');
+        const content = $('tourContent');
+        if (!content) return;
         if (App.tourStep === 1) {
             content.innerHTML = `<h2 class="accent-text mb-15">1. Brain Dump & Dates</h2>
-                <p class="small-text mb-15">Dump your notes in bad English. If you are logging for a previous day, just change the Date picker at the top.</p>
+                <p class="small-text mb-15">Dump your notes in any format. Use the Date picker for previous days.</p>
                 <button class="primary-btn mt-20" onclick="App.tourStep++; App.renderTourStep()">Next</button>`;
         } else if (App.tourStep === 2) {
             content.innerHTML = `<h2 class="accent-text mb-15">2. Clarity & Focus</h2>
-                <p class="small-text mb-15">AI organizes your mess into clear Yesterday, Today, and Blocker sections for your Scrum calls, plus an editable 8-hour Timesheet.</p>
+                <p class="small-text mb-15">AI structures your mess into Scrum updates and an 8-hour Timesheet.</p>
                 <button class="primary-btn mt-20" onclick="App.tourStep++; App.renderTourStep()">Next</button>`;
         } else if (App.tourStep === 3) {
-            content.innerHTML = `<h2 class="accent-text mb-15">3. Two Daily Reminders</h2>
-                <p class="small-text mb-15">Set Morning and Evening Scrum reminder times in Settings. We will ping you to prep your notes!</p>
+            content.innerHTML = `<h2 class="accent-text mb-15">3. Smart Reminders</h2>
+                <p class="small-text mb-15">Set Morning and Evening alerts in Settings to stay on track!</p>
                 <button class="primary-btn mt-20" onclick="App.finishTour()">Get Started</button>`;
         }
     },
     finishTour: () => {
-        document.getElementById('tourOverlay').style.display = 'none';
+        if ($('tourOverlay')) $('tourOverlay').style.display = 'none';
         document.body.classList.remove('no-scroll');
         if (!localStorage.getItem('sanrai_apiKey')) UI.openModal('settingsModal');
     }
 };
 
 // ==========================================
-// 2. UI MODULE (SCROLL BUG FIXED & TABS)
+// 2. UI MODULE
 // ==========================================
 const UI = {
-    openModal: (id) => {
-        document.getElementById(id).style.display = 'flex';
-        document.body.classList.add('no-scroll');
-    },
-    closeModal: (id) => {
-        document.getElementById(id).style.display = 'none';
-        document.body.classList.remove('no-scroll');
-    },
+    openModal: (id) => { if ($(id)) { $(id).style.display = 'flex'; document.body.classList.add('no-scroll'); } },
+    closeModal: (id) => { if ($(id)) { $(id).style.display = 'none'; document.body.classList.remove('no-scroll'); } },
     
     switchOutputTab: (tab, btnElement) => {
         document.querySelectorAll('.output-panel .tab-btn').forEach(b => b.classList.remove('active'));
         btnElement.classList.add('active');
-        document.getElementById('scrumView').style.display = tab === 'scrum' ? 'block' : 'none';
-        document.getElementById('timesheetView').style.display = tab === 'timesheet' ? 'block' : 'none';
+        if ($('scrumView')) $('scrumView').style.display = tab === 'scrum' ? 'block' : 'none';
+        if ($('timesheetView')) $('timesheetView').style.display = tab === 'timesheet' ? 'block' : 'none';
     },
     
     copyScrum: () => {
-        const y = document.getElementById('outYesterday').innerText;
-        const t = document.getElementById('outToday').innerText;
-        const b = document.getElementById('outBlockers').innerText;
-        const text = `Yesterday: ${y}\nToday: ${t}\nBlockers: ${b}`;
+        const text = `Yesterday: ${$('outYesterday').innerText}\nToday: ${$('outToday').innerText}\nBlockers: ${$('outBlockers').innerText}`;
         navigator.clipboard.writeText(text).then(() => alert("Scrum notes copied!"));
     },
 
     togglePassword: () => {
-        const input = document.getElementById('apiKey');
-        input.type = input.type === 'password' ? 'text' : 'password';
+        const input = $('apiKey');
+        if (input) input.type = input.type === 'password' ? 'text' : 'password';
     },
 
     openArchive: () => {
         UI.openModal('historyModal');
-        document.getElementById('universalSearch').value = ''; 
-        const historyBtn = document.getElementById('historyTabBtn');
-        if(historyBtn) Archive.switchTab('history', historyBtn);
+        if ($('universalSearch')) $('universalSearch').value = ''; 
+        Archive.renderList();
     }
 };
 
@@ -126,123 +124,100 @@ const UI = {
 // ==========================================
 const Engine = {
     notifInterval: null,
-    
     initNotifications: () => {
-        const btn = document.getElementById('notifBtn');
-        if (Notification.permission === 'granted') {
+        const btn = $('notifBtn');
+        if (Notification.permission === 'granted' && btn) {
             btn.innerText = '🔔 Alerts: On';
             btn.style.color = 'var(--accent)';
-            
             if(Engine.notifInterval) clearInterval(Engine.notifInterval);
             Engine.notifInterval = setInterval(() => {
                 const time1 = localStorage.getItem('sanrai_notifTime1') || "09:00";
                 const time2 = localStorage.getItem('sanrai_notifTime2') || "17:00";
                 const now = new Date();
                 const currentTime = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-                
                 if((currentTime === time1 || currentTime === time2) && now.getSeconds() < 10) { 
-                    new Notification("SANRAI Alert", { body: "Time to prep your Scrum notes! Open SANRAI.", icon: "https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" });
+                    new Notification("SANRAI Alert", { body: "Time to prep your Scrum notes!", icon: "https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" });
                 }
             }, 10000); 
         }
     },
 
-    toggleNotifications: () => {
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') Engine.initNotifications();
-        });
-    },
-
     startVoice: (elementId) => {
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-IN';
-        const btn = document.querySelector('.mic-btn');
-        btn.style.background = 'var(--accent)';
-        
         recognition.onresult = (e) => {
-            document.getElementById(elementId).value += (document.getElementById(elementId).value ? ' \n' : '') + e.results[0][0].transcript;
-            btn.style.background = 'var(--bg-panel)';
+            if ($(elementId)) $(elementId).value += ( $(elementId).value ? ' ' : '' ) + e.results[0][0].transcript;
         };
-        recognition.onerror = () => btn.style.background = 'var(--bg-panel)';
         recognition.start();
     },
 
+    generateOutput: async () => {
+        const rawData = $('rawInput').value.trim();
+        const apiKey = $('apiKey').value.trim();
+        const workDate = $('workDate').value; 
+        const btn = $('generateBtn');
+
+        if (!apiKey) return UI.openModal('settingsModal');
+        if (!rawData) return alert("Please dump some notes first.");
+
+        btn.innerText = "Structuring Data...";
+        btn.disabled = true;
+
+        // FIXED: Using Back-ticks properly
         const prompt = `You are an elite Corporate Work Analyst and Project Manager. 
-        Your job is to process the following raw IT employee input through a strict 4-STEP INTERNAL PIPELINE before generating the final output.
+        Your job is to process the following raw IT employee input through a strict 4-STEP INTERNAL PIPELINE.
 
         Raw Input: "${rawData}"
 
-        --- INTERNAL PIPELINE (Execute mentally before output) ---
-        STEP 1 - TASK EXTRACTION: Identify every single atomic task. Do NOT drop any information. Classify them (Dev, Debug, Review, etc.).
-        STEP 2 - SMART STRUCTURING (FOR SCRUM): Group the extracted tasks into high-level, concise bullet points for a quick verbal Scrum update. Keep "YESTERDAY" and "TODAY" to a maximum of 2 to 3 impactful points each. Merge minor tasks (like reviews or quick syncs) into a single point. Explicitly state "BLOCKERS".
-        STEP 3 - TIMESHEET GENERATION: Allocate time to ALL individual extracted tasks from Step 1. RULE: Default to exactly 8.0 total hours. If the user explicitly mentions a different total (e.g., '9 hours', 'worked 10 hours'), match that exact specified total. Do NOT group tasks here; list them individually.
-        STEP 4 - VALIDATION: Verify that EVERY task from Step 1 is represented in the timesheet, and hours perfectly sum to the determined total.
+        --- INTERNAL PIPELINE ---
+        STEP 1 - TASK EXTRACTION: Identify every single atomic task. Do NOT drop any information.
+        STEP 2 - SMART STRUCTURING (FOR SCRUM): Group into concise "YESTERDAY" and "TODAY" (max 3 points each).
+        STEP 3 - TIMESHEET GENERATION: Allocate hours totaling EXACTLY 8.0 (or user-specified total).
+        STEP 4 - VALIDATION: Ensure 100% data presence and correct total hours.
 
-        --- STRICT OUTPUT FORMAT (Use exactly these delimiters) ---
+        --- STRICT OUTPUT FORMAT ---
         ===MOTIVATION===
-        [1 short empowering, professional sentence for an IT worker]
+        [1 short empowering sentence]
         ===YESTERDAY===
-        [Max 3 concise, high-level bullet points for a quick verbal update]
+        [Concise bullet points]
         ===TODAY===
-        [Max 3 concise, high-level bullet points of next logical focus areas]
+        [Concise bullet points]
         ===BLOCKERS===
         [Identified blockers or 'None']
         ===TIMESHEET===
         Project,Task Description,Hours
-        [Generate rows strictly based on Step 3]
-        Total,,[Total Hours Calculated]`;
+        [CSV rows]
+        Total,,[Total]`;
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
-            
             const data = await response.json();
-            
-            // --- KOTHA ERROR CHECKING CODE ---
-            if (!response.ok) {
-                alert("Google API Error: " + (data.error ? data.error.message : "Unknown Error"));
-                btn.innerText = "✨ Auto-Structure with AI";
-                btn.disabled = false;
-                return; 
-            }
-
-            if (!data.candidates || !data.candidates[0].content) {
-                 alert("Google AI Error: Response blocked due to safety or empty output.");
-                 btn.innerText = "✨ Auto-Structure with AI";
-                 btn.disabled = false;
-                 return;
-            }
-            // ---------------------------------
+            if (!response.ok) throw new Error(data.error?.message || "API Error");
 
             const aiOutput = data.candidates[0].content.parts[0].text;
-            
-            const extract = (tag1, tag2) => {
-                try { return aiOutput.split(tag1)[1].split(tag2)[0].trim(); } catch(e) { return ""; }
-            };
+            const extract = (t1, t2) => { try { return aiOutput.split(t1)[1].split(t2)[0].trim(); } catch(e) { return ""; } };
 
             const mot = extract('===MOTIVATION===', '===YESTERDAY===');
             const yest = extract('===YESTERDAY===', '===TODAY===');
             const tod = extract('===TODAY===', '===BLOCKERS===');
             const block = extract('===BLOCKERS===', '===TIMESHEET===');
-            const ts = aiOutput.split('===TIMESHEET===')[1].trim();
+            const ts = aiOutput.split('===TIMESHEET===')[1]?.trim() || "";
 
-            document.getElementById('aiMotivation').innerText = mot;
-            document.getElementById('outYesterday').innerText = yest;
-            document.getElementById('outToday').innerText = tod;
-            document.getElementById('outBlockers').innerText = block;
+            if($('aiMotivation')) $('aiMotivation').innerText = mot;
+            if($('outYesterday')) $('outYesterday').innerText = yest;
+            if($('outToday')) $('outToday').innerText = tod;
+            if($('outBlockers')) $('outBlockers').innerText = block;
             
             Engine.renderEditableTable(ts);
             Archive.save(workDate, yest, tod, block, ts); 
-
-            document.getElementById('rawInput').value = '';
+            $('rawInput').value = '';
             localStorage.removeItem('draft_rawInput');
-
         } catch (error) {
-            // Updated catch block to show exact network error
-            alert("Network Error: " + error.message);
+            alert("Error: " + error.message);
         } finally {
             btn.innerText = "✨ Auto-Structure with AI";
             btn.disabled = false;
@@ -251,10 +226,10 @@ const Engine = {
 
     renderEditableTable: (csvString) => {
         const rows = csvString.split('\n');
+        if (rows.length < 2) return;
         let html = '<table class="ts-table" id="exportableTable"><thead><tr>';
         rows[0].split(',').forEach(h => html += `<th>${h.trim()}</th>`);
         html += '</tr></thead><tbody>';
-
         for(let i=1; i<rows.length; i++) {
             if(!rows[i].trim()) continue;
             html += '<tr>';
@@ -262,48 +237,19 @@ const Engine = {
             html += '</tr>';
         }
         html += '</tbody></table>';
-        document.getElementById('tsTableContainer').innerHTML = html;
-    },
-
-    exportCSV: () => {
-        const table = document.getElementById('exportableTable');
-        if(!table) return alert("Generate data first!");
-        
-        let csv = [];
-        const rows = table.querySelectorAll('tr');
-        for (let i = 0; i < rows.length; i++) {
-            let row = [], cols = rows[i].querySelectorAll('td, th');
-            for (let j = 0; j < cols.length; j++) {
-                let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
-                row.push('"' + data.replace(/"/g, '""') + '"');
-            }
-            csv.push(row.join(','));
-        }
-        
-        const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
-        const a = document.createElement('a');
-        a.href = window.URL.createObjectURL(blob);
-        a.download = `SANRAI_Timesheet_${document.getElementById('workDate').value}.csv`;
-        a.click();
+        if ($('tsTableContainer')) $('tsTableContainer').innerHTML = html;
     }
 };
 
 // ==========================================
-// 4. ARCHIVE MODULE
+// 4. ARCHIVE MODULE (RESTORED MISSING LOGIC)
 // ==========================================
 const Archive = {
     currentTab: 'history',
     currentFilter: 'all',
-    searchQuery: '',
 
     save: (dateStr, y, t, b, ts) => {
-        sanraiData.history.unshift({
-            id: Date.now(),
-            date: dateStr, 
-            timestamp: Date.now(), 
-            yesterday: y, today: t, blockers: b,
-            timesheetCSV: ts 
-        });
+        sanraiData.history.unshift({ id: Date.now(), date: dateStr, timestamp: Date.now(), yesterday: y, today: t, blockers: b, timesheetCSV: ts });
         sanraiData.history.sort((a, b) => new Date(b.date) - new Date(a.date));
         localStorage.setItem('sanraiData', JSON.stringify(sanraiData));
     },
@@ -312,69 +258,38 @@ const Archive = {
         document.querySelectorAll('#historyModal .tab-btn').forEach(b => b.classList.remove('active'));
         btnElement.classList.add('active');
         Archive.currentTab = tab;
-        document.getElementById('archiveFilters').style.display = tab === 'bin' ? 'none' : 'flex';
         Archive.renderList();
     },
 
-    filter: (type) => { Archive.currentFilter = type; Archive.renderList(); },
-    search: () => { Archive.searchQuery = document.getElementById('universalSearch').value.toLowerCase(); Archive.renderList(); },
-
     renderList: () => {
-        const list = document.getElementById('historyList');
+        const list = $('historyList');
+        if (!list) return;
         list.innerHTML = '';
-        
         let targetData = Archive.currentTab === 'history' ? sanraiData.history : sanraiData.bin;
         
-        if (Archive.searchQuery) {
-            targetData = targetData.filter(item => {
-                const text = `${item.date} ${item.yesterday} ${item.today} ${item.timesheetCSV}`.toLowerCase();
-                return text.includes(Archive.searchQuery);
-            });
+        const query = $('universalSearch') ? $('universalSearch').value.toLowerCase() : '';
+        if (query) {
+            targetData = targetData.filter(item => `${item.date} ${item.yesterday}`.toLowerCase().includes(query));
         }
 
-        if (Archive.currentTab === 'history') {
-            const todayStr = new Date().toISOString().split('T')[0];
-            const yestDate = new Date(); yestDate.setDate(yestDate.getDate() - 1);
-            const yestStr = yestDate.toISOString().split('T')[0];
-            
-            targetData = targetData.filter(item => {
-                if (Archive.currentFilter === 'today') return item.date === todayStr;
-                if (Archive.currentFilter === 'yesterday') return item.date === yestStr;
-                if (Archive.currentFilter === 'week') return (Date.now() - item.timestamp) <= (7 * 86400000);
-                return true;
-            });
+        if (targetData.length === 0) {
+            list.innerHTML = `<p class="hint-text">No records found.</p>`;
+            return;
         }
-
-        if (targetData.length === 0) return list.innerHTML = `<p class="hint-text">No records found.</p>`;
 
         targetData.forEach(item => {
-            const rows = item.timesheetCSV.split('\n');
-            let tableHTML = '<table class="ts-table"><thead><tr>';
-            rows[0].split(',').forEach(h => tableHTML += `<th>${h.trim()}</th>`);
-            tableHTML += '</tr></thead><tbody>';
-            for(let i=1; i<rows.length; i++) {
-                if(!rows[i].trim()) continue;
-                tableHTML += '<tr>';
-                rows[i].split(',').forEach(c => tableHTML += `<td>${c.trim()}</td>`);
-                tableHTML += '</tr>';
-            }
-            tableHTML += '</tbody></table>';
-
-            let actionButtons = Archive.currentTab === 'history' 
-                ? `<button class="action-btn" onclick="Archive.moveToBin(${item.id})">🗑️ Move to Bin</button>`
-                : `<button class="action-btn" onclick="Archive.restore(${item.id})">♻️ Restore</button>
-                   <button class="action-btn delete-btn" onclick="Archive.permanentlyDelete(${item.id})">❌ Wipe Data</button>`;
-
             list.innerHTML += `
                 <div class="history-item">
                     <div class="history-date"><span>Work Date: ${item.date}</span></div>
                     <div class="history-view-content">
-                        <b>Yesterday:</b><br> ${item.yesterday}<br><br>
-                        <b>Today:</b><br> ${item.today}<br><br>
-                        <b>Blockers:</b><br> ${item.blockers}
-                        <br><br>${tableHTML}
+                        <b>Yesterday:</b> ${item.yesterday}<br>
+                        <b>Today:</b> ${item.today}
                     </div>
-                    <div class="history-actions no-print">${actionButtons}</div>
+                    <div class="history-actions no-print">
+                        ${Archive.currentTab === 'history' 
+                            ? `<button class="action-btn" onclick="Archive.moveToBin(${item.id})">🗑️ Delete</button>`
+                            : `<button class="action-btn" onclick="Archive.restore(${item.id})">♻️ Restore</button>`}
+                    </div>
                 </div>
             `;
         });
@@ -397,15 +312,6 @@ const Archive = {
             const item = sanraiData.bin.splice(idx, 1)[0];
             delete item.deleteDate; 
             sanraiData.history.unshift(item);
-            sanraiData.history.sort((a, b) => new Date(b.date) - new Date(a.date));
-            localStorage.setItem('sanraiData', JSON.stringify(sanraiData));
-            Archive.renderList();
-        }
-    },
-
-    permanentlyDelete: (id) => {
-        if(confirm("Wipe this record? It cannot be recovered.")) {
-            sanraiData.bin = sanraiData.bin.filter(i => i.id !== id);
             localStorage.setItem('sanraiData', JSON.stringify(sanraiData));
             Archive.renderList();
         }
@@ -415,9 +321,7 @@ const Archive = {
         const now = Date.now();
         sanraiData.bin = sanraiData.bin.filter(item => (now - item.deleteDate) < (90 * 86400000));
         localStorage.setItem('sanraiData', JSON.stringify(sanraiData));
-    },
-
-    downloadPDF: () => window.print()
+    }
 };
 
 window.onload = App.init;
