@@ -179,22 +179,30 @@ const Engine = {
         btn.innerText = "Structuring Data...";
         btn.disabled = true;
 
-        const prompt = `Convert this raw IT employee input into structured output.
+        const prompt = `You are an elite Corporate Work Analyst and Project Manager. 
+        Your job is to process the following raw IT employee input through a strict 4-STEP INTERNAL PIPELINE before generating the final output.
+
         Raw Input: "${rawData}"
 
-        Strict Output Format (Use exactly these delimiters):
+        --- INTERNAL PIPELINE (Execute mentally before output) ---
+        STEP 1 - TASK EXTRACTION: Identify every single atomic task. Do NOT drop any information. Classify them (Dev, Debug, Review, etc.).
+        STEP 2 - SMART STRUCTURING: Categorize completed work into "YESTERDAY". Move incomplete/logical next steps to "TODAY". If uncertainty exists, explicitly state it in "BLOCKERS".
+        STEP 3 - TIMESHEET GENERATION: Allocate time to tasks. RULE: Default to exactly 8.0 total hours. HOWEVER, if the user explicitly mentions working a different total (e.g., '9 hours', 'worked 10 hours'), allocate time to match their exact specified total.
+        STEP 4 - VALIDATION: Verify that EVERY task from Step 1 is represented, and timesheet hours perfectly sum to the determined total (8.0 or user-specified).
+
+        --- STRICT OUTPUT FORMAT (Use exactly these delimiters) ---
         ===MOTIVATION===
-        [1 short empowering sentence for an IT worker]
+        [1 short empowering, professional sentence for an IT worker]
         ===YESTERDAY===
-        [Bullet points of completed tasks]
+        [Bullet points of extracted completed tasks]
         ===TODAY===
         [Bullet points of next logical focus areas]
         ===BLOCKERS===
-        [Identified blockers, or 'None']
+        [Identified blockers or 'None']
         ===TIMESHEET===
         Project,Task Description,Hours
-        [Generate rows based on tasks totaling 8 or more hours]
-        Total,,[Total Hours]`;
+        [Generate rows strictly based on Step 3]
+        Total,,[Total Hours Calculated]`;
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
