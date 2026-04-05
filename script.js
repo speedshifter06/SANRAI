@@ -167,42 +167,30 @@ const Engine = {
         recognition.start();
     },
 
-    generateOutput: async () => {
-        const rawData = document.getElementById('rawInput').value.trim();
-        const apiKey = document.getElementById('apiKey').value.trim();
-        const workDate = document.getElementById('workDate').value; 
-        const btn = document.getElementById('generateBtn');
-
-        if (!apiKey) return UI.openModal('settingsModal');
-        if (!rawData) return alert("Please dump some notes first.");
-
-        btn.innerText = "Structuring Data...";
-        btn.disabled = true;
-
-        const prompt = `You are an elite Corporate Work Analyst and Project Manager. 
+const prompt = You are an elite Corporate Work Analyst and Project Manager. 
         Your job is to process the following raw IT employee input through a strict 4-STEP INTERNAL PIPELINE before generating the final output.
 
         Raw Input: "${rawData}"
 
         --- INTERNAL PIPELINE (Execute mentally before output) ---
         STEP 1 - TASK EXTRACTION: Identify every single atomic task. Do NOT drop any information. Classify them (Dev, Debug, Review, etc.).
-        STEP 2 - SMART STRUCTURING: Categorize completed work into "YESTERDAY". Move incomplete/logical next steps to "TODAY". If uncertainty exists, explicitly state it in "BLOCKERS".
-        STEP 3 - TIMESHEET GENERATION: Allocate time to tasks. RULE: Default to exactly 8.0 total hours. HOWEVER, if the user explicitly mentions working a different total (e.g., '9 hours', 'worked 10 hours'), allocate time to match their exact specified total.
-        STEP 4 - VALIDATION: Verify that EVERY task from Step 1 is represented, and timesheet hours perfectly sum to the determined total (8.0 or user-specified).
+        STEP 2 - SMART STRUCTURING (FOR SCRUM): Group the extracted tasks into high-level, concise bullet points for a quick verbal Scrum update. Keep "YESTERDAY" and "TODAY" to a maximum of 3 to 5 impactful points each. Merge minor tasks (like reviews or quick syncs) into a single point. Explicitly state "BLOCKERS".
+        STEP 3 - TIMESHEET GENERATION: Allocate time to ALL individual extracted tasks from Step 1. RULE: Default to exactly 8.0 total hours. If the user explicitly mentions a different total (e.g., '9 hours', 'worked 10 hours'), match that exact specified total. Do NOT group tasks here; list them individually.
+        STEP 4 - VALIDATION: Verify that EVERY task from Step 1 is represented in the timesheet, and hours perfectly sum to the determined total.
 
         --- STRICT OUTPUT FORMAT (Use exactly these delimiters) ---
         ===MOTIVATION===
         [1 short empowering, professional sentence for an IT worker]
         ===YESTERDAY===
-        [Bullet points of extracted completed tasks]
+        [Max 3 concise, high-level bullet points for a quick verbal update]
         ===TODAY===
-        [Bullet points of next logical focus areas]
+        [Max 3 concise, high-level bullet points of next logical focus areas]
         ===BLOCKERS===
         [Identified blockers or 'None']
         ===TIMESHEET===
         Project,Task Description,Hours
         [Generate rows strictly based on Step 3]
-        Total,,[Total Hours Calculated]`;
+        Total,,[Total Hours Calculated];
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
