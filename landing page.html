@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  
+  <title>SANRAI | Zero-Friction Co-Pilot for IT Pros</title>
+  <meta name="description" content="Stop wasting time on timesheets and stand-ups. Let AI structure your workday notes in seconds. 100% Local and Secure." />
+  <meta property="og:title" content="SANRAI | Zero-Friction OS" />
+  <meta property="og:description" content="Automate your daily IT workflow. Dump your messy notes and get perfect Stand-ups and Timesheets instantly." />
+  <meta property="og:image" content="https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" />
+  
+  <link rel="icon" href="https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" type="image/webp">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    if (localStorage.getItem('sanrai_consent') === 'true') {
+      window.location.replace("app.html");
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --accent: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body { background: var(--bg-main); color: var(--text-main); line-height: 1.6; overflow-x: hidden; }
+
+    /* Navbar */
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; max-width: 1200px; margin: auto; }
+    .logo { display: flex; align-items: center; font-size: 1.3rem; font-weight: 700; letter-spacing: 0.5px; }
+    .logo img { height: 32px; margin-right: 10px; }
+    .nav-btn { background: transparent; color: var(--text-main); border: 1px solid var(--text-muted); padding: 6px 14px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: 0.3s; font-size: 0.9rem;}
+    .nav-btn:hover { background: var(--bg-card); border-color: var(--text-main); }
+
+    .container { width: 90%; max-width: 1100px; margin: auto; }
+    section { padding: 45px 0; }
+    h1, h2, h3 { color: var(--text-main); line-height: 1.3; }
+    p { color: var(--text-muted); font-size: 1.05rem; }
+
+    .btn-primary { display: inline-block; background: var(--accent); color: #0f172a; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 1.05rem; margin-top: 20px; transition: 0.3s; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
+    .btn-primary:hover { background: #7dd3fc; transform: translateY(-2px); }
+
+    .install-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; }
+
+    /* HERO SECTION */
+    .hero { text-align: center; padding-top: 30px; padding-bottom: 20px; }
+    .hero h1 { font-size: 3rem; margin-bottom: 15px; background: linear-gradient(to right, #fff, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { max-width: 600px; margin: auto; font-size: 1.1rem; }
+
+    /* MOCKUP STYLING */
+    .mockup-container { margin-top: 35px; padding: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 15px 35px rgba(0,0,0,0.5); overflow: hidden; }
+    .mockup-ui { width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; background: var(--bg-main); display: flex; flex-direction: column; text-align: left; overflow: hidden; font-size: 0.9rem;}
+    
+    /* Mockup Header */
+    .mockup-header { padding: 10px 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; font-weight: bold; font-size: 0.85rem; color: var(--text-main); }
+    .mockup-header img { height: 18px; margin-right: 8px; }
+    .mockup-body { display: flex; flex: 1; overflow: hidden; }
+
+    /* Mockup Internal Elements */
+    .mockup-panel { flex: 1; padding: 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column;}
+    .mockup-panel:last-child { border-right: none; background: var(--bg-panel);}
+    .mockup-title { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; font-weight: 600; }
+    .mockup-textarea { flex: 1; background: var(--bg-card); border: 1px solid var(--accent); border-radius: 8px; padding: 15px; color: var(--text-main); font-family: 'Comic Sans MS', cursive, sans-serif; font-size: 1rem; position: relative;}
+    .mockup-card { background: var(--bg-main); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px;}
+    .mockup-card h4 { color: var(--accent); font-size: 0.75rem; margin-bottom: 5px;}
+    .mockup-card p { font-size: 0.8rem; color: var(--text-main); line-height: 1.4;}
+    
+    .mockup-table { width: 100%; border-collapse: collapse; margin-top: 15px;}
+    .mockup-table th, .mockup-table td { border: 1px solid var(--border); padding: 10px; font-size: 0.8rem; color: var(--text-main);}
+    .mockup-table th { background: var(--bg-main); color: var(--text-muted);}
+    .mockup-table td { background: var(--bg-card); }
+    .mockup-table .active-cell { outline: 2px solid var(--accent); position: relative;}
+    .mockup-table .active-cell::after { content: '|'; position: absolute; right: 8px; animation: blink 1s infinite; color: var(--accent);}
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* GRID & CARDS */
+    .grid-3 { display: grid; gap: 20px; margin-top: 30px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .grid-4 { display: grid; gap: 20px; margin-top: 30px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+    .card { background: var(--bg-card); padding: 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; display: flex; flex-direction: column; justify-content: flex-start;}
+    .card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .card h3 { font-size: 1.15rem; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    .card p { font-size: 0.95rem; }
+    .icon-box { background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 8px; border-radius: 8px; display: inline-block; margin-bottom: 12px; font-size: 1.3rem; align-self: flex-start; }
+
+    .trust-banner { background: linear-gradient(135deg, var(--bg-card), rgba(56, 189, 248, 0.1)); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid var(--accent); margin-top: 20px; }
+    .trust-banner h2 { margin-bottom: 10px; font-size: 1.8rem;}
+
+    footer { text-align: center; padding: 30px 0; border-top: 1px solid var(--bg-card); color: var(--text-muted); font-size: 0.85rem; margin-top: 20px;}
+
+    @media (max-width: 768px) { 
+      .hero h1 { font-size: 2rem; } 
+      .hero p { font-size: 0.95rem; } 
+      section { padding: 35px 0; } 
+      .grid-3, .grid-4 { gap: 15px; }
+      .mockup-ui { display: block; aspect-ratio: auto; min-height: 400px; }
+      .mockup-body { flex-direction: column; }
+      .mockup-panel { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <div class="logo">
+      <img src="https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" alt="SANRAI Logo">
+      SANRAI
+    </div>
+    <a href="app.html" class="nav-btn">Launch App</a>
+  </nav>
+
+  <section class="hero container">
+    <div class="install-badge">
+      📱 Installable as a Native App on iOS, Android & Desktop
+    </div>
+    
+    <h1>Your code is complex.<br>Your reports shouldn't be.</h1>
+    <p>Reclaim your focus. Dump your messy notes, and let AI structure your daily stand-ups and timesheets in seconds.</p>
+    
+    <a href="app.html" class="btn-primary">✨ Launch Workspace for Free</a>
+    <p style="margin-top:12px; font-size:0.8rem; opacity:0.7;">Pro Tip: Open the app and click "Add to Home Screen" to install.</p>
+
+    <div class="mockup-container">
+      <div class="mockup-ui">
+        <div class="mockup-header">
+            <img src="https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" alt="Logo">
+            SANRAI Workspace
+        </div>
+        <div class="mockup-body">
+            <div class="mockup-panel">
+                <div class="mockup-title">The Brain Dump</div>
+                <div class="mockup-textarea">
+                    met akhil 10am scrum call,<br>
+                    helped QA test new feature,<br>
+                    fixed DB bug,<br>
+                    4pm client sync
+                    <span style="position: absolute; bottom: 15px; right: 15px; font-size: 1.2rem; opacity: 0.5;">🎙️</span>
+                </div>
+                <div style="background: var(--accent); color: var(--bg-main); text-align: center; padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold; font-size: 0.8rem;">
+                    ✨ Auto-Structure with AI
+                </div>
+            </div>
+            <div class="mockup-panel" style="background: var(--bg-card);">
+                <div class="mockup-title">Clarity & Focus</div>
+                <div style="border-bottom: 1px solid var(--border); margin-bottom: 15px; padding-bottom: 5px; display: flex; gap: 10px;">
+                    <span style="color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 5px;">Scrum Prep</span>
+                    <span style="color: var(--text-muted);">Timesheet</span>
+                </div>
+                <div class="mockup-card">
+                    <h4>🌅 Yesterday's Wins</h4>
+                    <p>• Fixed critical database bug<br>• Helped QA test new feature</p>
+                </div>
+                <div class="mockup-card">
+                    <h4>🎯 Today's Focus</h4>
+                    <p>• Sync with Client<br>• Code optimizations</p>
+                </div>
+                <div class="mockup-card">
+                    <h4>🚧 Blockers</h4>
+                    <p>None</p>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container" style="text-align: center;">
+    <h2 style="font-size: 1.8rem; margin-bottom: 8px;">Workflow automation, simplified.</h2>
+    <p>Zero friction from thought to submission.</p>
+
+    <div class="grid-4">
+      <div class="card" style="text-align: left;">
+        <div class="icon-box">🧠</div>
+        <h3>1. The Brain Dump</h3>
+        <p>Throughout your day, type or voice-record your tasks in any format or language. Don't worry about formatting.</p>
+      </div>
+      
+      <div class="card" style="text-align: left;">
+        <div class="icon-box">✨</div>
+        <h3>2. AI Structuring</h3>
+        <p>Click one button. SANRAI instantly categorizes your inputs into a point-wise Scrum update and an 8-hour timesheet.</p>
+      </div>
+      
+      <div class="card" style="text-align: left;">
+        <div class="icon-box">⬇️</div>
+        <h3>3. Export</h3>
+        <p>Copy your Scrum updates directly to your clipboard, or seamlessly download your timesheets as Excel/CSV files.</p>
+      </div>
+
+      <div class="card" style="text-align: left;">
+        <div class="icon-box">📱</div>
+        <h3>4. Install</h3>
+        <p>Install SANRAI to your phone's home screen or desktop for one-tap native access anywhere. No app store needed.</p>
+      </div>
+
+      <div class="card" style="text-align: left;">
+        <div class="icon-box">🔑</div>
+        <h3>5. The Engine (API Key)</h3>
+        <p><b>What is a Gemini API Key?</b> It's a secure passcode from Google that connects SANRAI directly to the AI. It ensures we never see or store your data. 100% private to you.</p>
+      </div>
+
+      <div class="card" style="text-align: left;">
+        <div class="icon-box">🔗</div>
+        <h3>6. Get Your Free Key</h3>
+        <p><b>How do I get one?</b> Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 500;">Google AI Studio</a>, sign in, and click "Create API Key". It takes 30 seconds, requires no credit card, and is completely free.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="grid-3" style="align-items: center;">
+      <div style="grid-column: span 1;">
+        <h2 style="font-size: 1.8rem; margin-bottom: 15px;">Built to boost your confidence.</h2>
+        <p style="margin-bottom: 15px;">We believe developers should focus on solving problems, not tracking minutes. SANRAI removes the anxiety of morning sync calls and Friday reporting.</p>
+        <ul style="list-style: none; color: var(--text-muted); line-height: 1.8; font-size: 0.95rem;">
+          <li>✅ Clear "Yesterday & Today" focus</li>
+          <li>✅ Identify blockers effortlessly</li>
+          <li>✅ Editable 8-hour timesheet tables</li>
+          <li>✅ Daily Scrum Reminder Notifications</li>
+        </ul>
+      </div>
+      
+      <div style="grid-column: span 2;" class="mockup-container" style="margin-top: 0;">
+        <div class="mockup-ui">
+          <div class="mockup-header">
+              <img src="https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" alt="Logo">
+              SANRAI Workspace
+          </div>
+          <div class="mockup-body" style="background: var(--bg-card); display: block; overflow-y: auto; padding: 20px;">
+              <div style="border-bottom: 1px solid var(--border); margin-bottom: 15px; padding-bottom: 5px; display: flex; gap: 10px;">
+                  <span style="color: var(--text-muted);">Scrum Prep</span>
+                  <span style="color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 5px;">Timesheet</span>
+              </div>
+              <table class="mockup-table">
+                  <tr>
+                      <th>Project</th>
+                      <th>Task Description</th>
+                      <th>Hours</th>
+                  </tr>
+                  <tr>
+                      <td>Project Apollo</td>
+                      <td>Database bug fixing</td>
+                      <td class="active-cell">4.0</td>
+                  </tr>
+                  <tr>
+                      <td>Internal QA</td>
+                      <td>Testing new features</td>
+                      <td>2.0</td>
+                  </tr>
+                  <tr>
+                      <td>Client Sync</td>
+                      <td>Requirements mapping</td>
+                      <td>2.0</td>
+                  </tr>
+                  <tr style="background: var(--bg-main);">
+                      <td colspan="2" style="color: var(--accent); font-weight: bold; background: var(--bg-main);">Total</td>
+                      <td style="color: var(--accent); font-weight: bold; background: var(--bg-main);">8.0</td>
+                  </tr>
+              </table>
+              <div style="background: var(--accent); color: var(--bg-main); display: inline-block; padding: 8px 15px; border-radius: 6px; margin-top: 15px; font-weight: bold; font-size: 0.8rem;">
+                  ⬇️ Download Excel/CSV
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="trust-banner">
+      <h2>100% Local. 100% Private.</h2>
+      <p style="max-width: 700px; margin: auto; font-size: 1rem;">We know you work with sensitive code. That's why SANRAI has <b>zero backend servers</b>. Your data never leaves your browser's LocalStorage. You bring your own Gemini API key, ensuring complete corporate compliance.</p>
+    </div>
+  </section>
+
+  <section class="hero container">
+    <h2 style="font-size: 2rem;">Ready to destroy the administrative trap?</h2>
+    <a href="app.html" class="btn-primary">Launch Workspace Now</a>
+  </section>
+
+  <footer>
+    <p>Built with empathy for developers, QA, and IT teams.</p>
+    <p style="margin-top: 8px; font-size: 0.75rem;">All rights reserved &copy; 2026 <b>SANRAI</b></p>
+  </footer>
+
+</body>
+</html>
