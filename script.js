@@ -337,7 +337,7 @@ CRITICAL INSTRUCTION: If the audio is completely silent, only contains backgroun
         Raw Input: "${rawData}"
 
         --- TONE & STYLE GUIDELINES (CRITICAL) ---
-        Translate the input into professional corporate style but NATURAL, simple English. 
+        Translate the input into professional but NATURAL, simple corporate English. 
         AVOID overly complex corporate jargon, robotic AI buzzwords, or highly senior architectural terms. 
         Write it exactly how a sensible junior or mid-level developer would naturally speak in a daily stand-up—clear, confident, to the point, but realistic.
 
