@@ -192,7 +192,6 @@ const Engine = {
         }
     },
 
-    // 100% FIXED DIRECT AUDIO RECORDING 
     startVoice: async (elementId) => {
         const micBtn = $('micButton');
         const apiKey = $('apiKey').value.trim();
@@ -202,7 +201,6 @@ const Engine = {
             return alert("Please enter your Gemini API Key in settings to use the Voice feature.");
         }
 
-        // If recording is running, Stop it and send to Gemini
         if (Engine.mediaRecorderInstance && Engine.mediaRecorderInstance.state === "recording") {
             Engine.mediaRecorderInstance.stop();
             micBtn.classList.remove('recording');
@@ -227,13 +225,11 @@ const Engine = {
                     return alert("Recording was empty. Please try speaking again.");
                 }
 
-                // FIX: Clean the mimeType for Gemini (remove ';codecs=opus' etc.)
                 let mimeType = Engine.mediaRecorderInstance.mimeType || 'audio/webm';
                 mimeType = mimeType.split(';')[0]; 
 
                 const audioBlob = new Blob(Engine.audioChunks, { type: mimeType });
                 
-                // Prevent sending instant 0-second empty blobs
                 if (audioBlob.size < 500) {
                     micBtn.innerText = "🎙️";
                     return alert("Recording was too short. Please speak a bit longer.");
@@ -244,14 +240,18 @@ const Engine = {
                 reader.onloadend = async () => {
                     const base64Audio = reader.result.split(',')[1];
                     
+                    // FIX: Strict Anti-Hallucination Prompt
+                    const aiPrompt = `Listen to this audio. It can be in ANY language in the world, or a mix of multiple languages. Transcribe exactly what is spoken. 
+CRITICAL INSTRUCTION: If the audio is completely silent, only contains background static/noise, or has no human voice speaking, you MUST output exactly and ONLY the word 'SILENCE_DETECTED'. Do not hallucinate, guess, or invent news, ads, or random text under any circumstances. Just return 'SILENCE_DETECTED'.`;
+
                     try {
-                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 contents: [{
                                     parts: [
-                                        { text: "Listen to this audio. It might be in English, Telugu, or a mix of both. Transcribe exactly what is spoken. Just output the raw transcribed text. Do not add any extra words or explanations." },
+                                        { text: aiPrompt },
                                         { inlineData: { mimeType: mimeType, data: base64Audio } }
                                     ]
                                 }]
@@ -260,14 +260,20 @@ const Engine = {
                         
                         const data = await response.json();
                         
-                        // FIX: Actually display the REAL error from Google if it fails
                         if (!response.ok || data.error) {
                             throw new Error(data.error?.message || "Google API Failed to process audio.");
                         }
 
                         if (data.candidates && data.candidates[0] && data.candidates[0].content.parts[0]) {
                             const transcript = data.candidates[0].content.parts[0].text.trim();
-                            $(elementId).value += ($(elementId).value ? ' ' : '') + transcript;
+                            
+                            // FIX: Checking for the silence flag
+                            if (transcript.includes("SILENCE_DETECTED")) {
+                                alert("No speech detected. Please speak clearly into the microphone.");
+                            } else {
+                                $(elementId).value += ($(elementId).value ? ' ' : '') + transcript;
+                            }
+
                         } else {
                             alert("AI could not understand the audio. Please try speaking clearly.");
                         }
