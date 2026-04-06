@@ -202,15 +202,15 @@ const Engine = {
         let csv = [];
         let rows = table.querySelectorAll("tr");
         for(let i=0; i<rows.length; i++) {
-      startVoice: (elementId) => {
+      
+                startVoice: (elementId) => { // స్మాల్ 's' తో ఉండాలి
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
             return alert("Voice dictation is not supported in this browser.");
         }
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         
-        // FIX: Removed "recognition.lang = 'en-IN';" completely. 
-        // Now it globally adapts to the User's Device Default Language!
-
+        // గ్లోబల్ లాంగ్వేజ్ సపోర్ట్ కోసం lang ని పీకేశాం
+        
         const micBtn = $('micButton');
         
         recognition.onstart = () => {
@@ -229,6 +229,19 @@ const Engine = {
                 alert("Microphone error: " + event.error);
             }
         };
+
+        // మిస్ అయిన కోడ్ 1: టెక్స్ట్ బాక్స్ లో వాయిస్ ని ప్రింట్ చేయడం
+        recognition.onresult = (e) => {
+            if ($(elementId)) $(elementId).value += ( $(elementId).value ? ' ' : '' ) + e.results[0][0].transcript;
+        };
+        
+        // మిస్ అయిన కోడ్ 2: అసలు మైక్ ని స్టార్ట్ చేయడం
+        try {
+            recognition.start();
+        } catch (err) {
+            console.error("Mic start error:", err);
+        }
+    },
 
         recognition.onresult = (e) => {
             if ($(elementId)) $(elementId).value += ( $(elementId).value ? ' ' : '' ) + e.results[0][0].transcript;
