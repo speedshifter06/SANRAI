@@ -196,7 +196,7 @@ const Engine = {
         }
     },
 
-    // NEW DIRECT AUDIO TO GEMINI LOGIC
+    // NEW: DIRECT AUDIO RECORDING TO GEMINI API
     startVoice: async (elementId) => {
         const micBtn = $('micButton');
         const apiKey = $('apiKey').value.trim();
@@ -206,11 +206,11 @@ const Engine = {
             return alert("Please enter your Gemini API Key in settings to use the Voice feature.");
         }
 
-        // If currently recording, stop it and process the audio
+        // If already recording, STOP the recording and start processing
         if (Engine.mediaRecorderInstance && Engine.mediaRecorderInstance.state === "recording") {
             Engine.mediaRecorderInstance.stop();
             micBtn.classList.remove('recording');
-            micBtn.innerText = "⏳"; 
+            micBtn.innerText = "⏳"; // Show loading icon
             return;
         }
 
@@ -231,13 +231,13 @@ const Engine = {
                     const base64Audio = reader.result.split(',')[1];
                     
                     try {
-                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 contents: [{
                                     parts: [
-                                        { text: "Transcribe this audio exactly as you hear it. If it's Telugu, write in Telugu script or Manglish. Only return the raw transcription text, no extra words or explanations." },
+                                        { text: "Listen to this audio. It might be in English, Telugu, or a mix of both. Transcribe exactly what is spoken. Just output the raw transcribed text. Do not add any extra words or explanations." },
                                         { inlineData: { mimeType: "audio/webm", data: base64Audio } }
                                     ]
                                 }]
@@ -253,17 +253,20 @@ const Engine = {
                     } catch (err) {
                         alert("Audio processing error: " + err.message);
                     } finally {
-                        micBtn.innerText = "🎙️"; 
+                        micBtn.innerText = "🎙️"; // Change back to mic icon
                     }
                 };
+
+                // Stop hardware mic tracks to save battery
+                stream.getTracks().forEach(track => track.stop());
             };
 
             Engine.mediaRecorderInstance.start();
             micBtn.classList.add('recording');
-            micBtn.innerText = "⏹️"; 
+            micBtn.innerText = "⏹️"; // Change to stop button
 
         } catch (err) {
-            alert("Microphone access denied. Please check your browser permissions.");
+            alert("Microphone access denied. Please allow microphone permissions in your browser settings.");
             console.error("Mic error:", err);
         }
     },
@@ -452,9 +455,4 @@ const Archive = {
                 const diffTime = Math.abs(today - itemDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
                 
-                if (Archive.currentFilter === 'today') return diffDays === 0;
-                if (Archive.currentFilter === 'yesterday') return diffDays === 1;
-                if (Archive.currentFilter === 'week') return diffDays <= 7;
-                return true;
-            });
-        
+                if (Archive.current
