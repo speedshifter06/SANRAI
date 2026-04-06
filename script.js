@@ -245,7 +245,7 @@ const Engine = {
 CRITICAL INSTRUCTION: If the audio is completely silent, only contains background static/noise, or has no human voice speaking, you MUST output exactly and ONLY the word 'SILENCE_DETECTED'. Do not hallucinate, guess, or invent news, ads, or random text under any circumstances. Just return 'SILENCE_DETECTED'.`;
 
                     try {
-                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
