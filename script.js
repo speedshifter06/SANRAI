@@ -192,7 +192,7 @@ const Engine = {
         }
     },
 
-    // DIRECT AUDIO RECORDING TO GEMINI API
+    // 100% FIXED DIRECT AUDIO RECORDING 
     startVoice: async (elementId) => {
         const micBtn = $('micButton');
         const apiKey = $('apiKey').value.trim();
@@ -216,11 +216,29 @@ const Engine = {
             Engine.audioChunks = [];
 
             Engine.mediaRecorderInstance.ondataavailable = event => {
-                Engine.audioChunks.push(event.data);
+                if (event.data.size > 0) {
+                    Engine.audioChunks.push(event.data);
+                }
             };
 
             Engine.mediaRecorderInstance.onstop = async () => {
-                const audioBlob = new Blob(Engine.audioChunks, { type: 'audio/webm' });
+                if (Engine.audioChunks.length === 0) {
+                    micBtn.innerText = "🎙️";
+                    return alert("Recording was empty. Please try speaking again.");
+                }
+
+                // FIX: Clean the mimeType for Gemini (remove ';codecs=opus' etc.)
+                let mimeType = Engine.mediaRecorderInstance.mimeType || 'audio/webm';
+                mimeType = mimeType.split(';')[0]; 
+
+                const audioBlob = new Blob(Engine.audioChunks, { type: mimeType });
+                
+                // Prevent sending instant 0-second empty blobs
+                if (audioBlob.size < 500) {
+                    micBtn.innerText = "🎙️";
+                    return alert("Recording was too short. Please speak a bit longer.");
+                }
+
                 const reader = new FileReader();
                 reader.readAsDataURL(audioBlob);
                 reader.onloadend = async () => {
@@ -234,20 +252,27 @@ const Engine = {
                                 contents: [{
                                     parts: [
                                         { text: "Listen to this audio. It might be in English, Telugu, or a mix of both. Transcribe exactly what is spoken. Just output the raw transcribed text. Do not add any extra words or explanations." },
-                                        { inlineData: { mimeType: "audio/webm", data: base64Audio } }
+                                        { inlineData: { mimeType: mimeType, data: base64Audio } }
                                     ]
                                 }]
                             })
                         });
+                        
                         const data = await response.json();
-                        if (data.candidates && data.candidates[0]) {
+                        
+                        // FIX: Actually display the REAL error from Google if it fails
+                        if (!response.ok || data.error) {
+                            throw new Error(data.error?.message || "Google API Failed to process audio.");
+                        }
+
+                        if (data.candidates && data.candidates[0] && data.candidates[0].content.parts[0]) {
                             const transcript = data.candidates[0].content.parts[0].text.trim();
                             $(elementId).value += ($(elementId).value ? ' ' : '') + transcript;
                         } else {
-                            alert("AI could not understand the audio.");
+                            alert("AI could not understand the audio. Please try speaking clearly.");
                         }
                     } catch (err) {
-                        alert("Audio processing error: " + err.message);
+                        alert("API Error: " + err.message);
                     } finally {
                         micBtn.innerText = "🎙️"; 
                     }
@@ -261,7 +286,7 @@ const Engine = {
             micBtn.innerText = "⏹️"; 
 
         } catch (err) {
-            alert("Microphone access denied. Please check your browser permissions.");
+            alert("Microphone access denied. Please allow microphone permissions in your browser settings.");
             console.error("Mic error:", err);
         }
     },
@@ -393,7 +418,6 @@ const Archive = {
     currentTab: 'history',
     currentFilter: 'all',
 
-    // Fix: Added missing functions that were causing bugs in UI
     search: () => Archive.renderList(),
     downloadPDF: () => window.print(),
 
@@ -507,5 +531,4 @@ const Archive = {
     }
 };
 
-// FIX: Ee line okkati miss avvadam valle neeku app crash ayindi. Idi app ni start chestundi.
 window.onload = App.init;
