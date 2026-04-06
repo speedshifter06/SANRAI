@@ -331,35 +331,42 @@ CRITICAL INSTRUCTION: If the audio is completely silent, only contains backgroun
             step++;
         }, 1500);
 
+                // THE ULTIMATE MERGED PROMPT
         const prompt = `You are an insightful Technical Lead and Agile Coach. 
         Your job is to process the following raw IT employee input through a strict 4-STEP INTERNAL PIPELINE.
 
         Raw Input: "${rawData}"
 
         --- TONE & STYLE GUIDELINES (CRITICAL) ---
-        Translate the input into professional but NATURAL, simple corporate English. 
-        AVOID overly complex corporate jargon, robotic AI buzzwords, or highly senior architectural terms. 
+        Translate the input into professional but NATURAL, simple English. 
+        AVOID overly complex corporate jargon, robotic AI buzzwords, or highly senior architectural terms (e.g., avoid "cross-functional coordination", "cyclomatic complexity", "unannounced payload schema"). 
         Write it exactly how a sensible junior or mid-level developer would naturally speak in a daily stand-up—clear, confident, to the point, but realistic.
+
+        --- CRITICAL ANTI-HALLUCINATION RULES ---
+        1. ZERO FAKE TASKS: You MUST ONLY extract tasks explicitly mentioned in the Raw Input. DO NOT invent, assume, or create fake tasks (e.g., no random "monitoring", "syncs", or "reviews" unless explicitly stated).
+        2. MISSING DATA: 
+           - If NO tasks for "TODAY" are mentioned, output exactly: "• Continue scheduled sprint tasks and BAU."
+           - If NO tasks for "YESTERDAY" are mentioned, output exactly: "• Continued scheduled sprint tasks."
 
         --- INTERNAL PIPELINE ---
         STEP 1 - TASK EXTRACTION: Identify every single atomic task. Do NOT drop any information.
         STEP 2 - SMART STRUCTURING (FOR SCRUM): Group into concise "YESTERDAY" and "TODAY" (max 3 points each). Keep sentences straightforward.
-        STEP 3 - TIMESHEET GENERATION: Allocate hours totaling EXACTLY 8.0 (or user-specified total).
-        STEP 4 - VALIDATION: Ensure 100% data presence and correct total hours.
+        STEP 3 - TIMESHEET GENERATION: Allocate hours totaling EXACTLY 8.0. Put explicit tasks first. Dump all remaining hours into a generic row named "General Sprint Tasks / BAU".
+        STEP 4 - VALIDATION: Verify exactly 8.0 hours total and 0 hallucinations.
 
         --- STRICT OUTPUT FORMAT ---
         ===MOTIVATION===
         [1 short empowering sentence]
         ===YESTERDAY===
-        [Concise bullet points in a natural professional tone]
+        [Concise bullet points]
         ===TODAY===
-        [Concise bullet points in a natural professional tone]
+        [Concise bullet points]
         ===BLOCKERS===
-        [Identified blockers or 'None' in plain English]
+        [Identified blockers or 'None']
         ===TIMESHEET===
         Project,Task Description,Hours
         [CSV rows]
-        Total,,[Total]`;
+        Total,,8.0`;
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
