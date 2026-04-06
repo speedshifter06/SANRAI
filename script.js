@@ -3,12 +3,31 @@ let sanraiData = JSON.parse(localStorage.getItem('sanraiData')) || { history: []
 // Helper to safely get element
 const $ = (id) => document.getElementById(id);
 
+// --- GLOBAL HARDWARE INTEGRATIONS ---
+// Haptic Feedback for buttons
+document.body.addEventListener('click', (e) => {
+    if(e.target.closest('.haptic-btn') && navigator.vibrate) {
+        navigator.vibrate(30); // Short tap vibration
+    }
+});
+
+// Hardware Back Button to close modals instead of exiting app
+window.addEventListener('popstate', (e) => {
+    document.querySelectorAll('.modal, .overlay').forEach(m => {
+        if(m.id !== 'consentOverlay' && m.id !== 'tourOverlay') m.style.display = 'none';
+    });
+    document.body.classList.remove('no-scroll');
+    if(e.state && e.state.modal) {
+         $(e.state.modal).style.display = 'flex';
+         document.body.classList.add('no-scroll');
+    }
+});
+
 // ==========================================
 // 1. APP & INITIALIZATION
 // ==========================================
 const App = {
     init: () => {
-        // App Page Logic
         if ($('consentOverlay')) {
             const hasConsent = localStorage.getItem('sanrai_consent');
             if (!hasConsent) {
@@ -25,8 +44,6 @@ const App = {
         
         const draft = localStorage.getItem('draft_rawInput');
         if (draft && $('rawInput')) $('rawInput').value = draft;
-
-        // FIX: Ensuring date is visible and set to today
         if ($('workDate')) $('workDate').valueAsDate = new Date(); 
 
         if ($('rawInput')) {
@@ -64,21 +81,26 @@ const App = {
         App.tourStep = 1;
         App.renderTourStep();
     },
+    
+    // Highly visual, emoji-driven tour
     renderTourStep: () => {
         const content = $('tourContent');
         if (!content) return;
         if (App.tourStep === 1) {
-            content.innerHTML = `<h2 class="accent-text mb-15">1. Brain Dump & Dates</h2>
-                <p class="small-text mb-15">Dump your notes in any format. Use the Date picker for previous days.</p>
-                <button class="primary-btn mt-20" onclick="App.tourStep++; App.renderTourStep()">Next</button>`;
+            content.innerHTML = `<h2 class="accent-text mb-15">1. The Brain Dump</h2>
+                <div style="font-size: 3rem; margin: 20px 0;">🗣️ ➡️ 💻</div>
+                <p class="small-text mb-15">Type or speak your messy, chaotic work notes. Don't worry about grammar.</p>
+                <button class="primary-btn haptic-btn mt-20" onclick="App.tourStep++; App.renderTourStep()">Next ➡️</button>`;
         } else if (App.tourStep === 2) {
-            content.innerHTML = `<h2 class="accent-text mb-15">2. Clarity & Focus</h2>
-                <p class="small-text mb-15">AI structures your mess into Scrum updates and an 8-hour Timesheet.</p>
-                <button class="primary-btn mt-20" onclick="App.tourStep++; App.renderTourStep()">Next</button>`;
+            content.innerHTML = `<h2 class="accent-text mb-15">2. Click Generate</h2>
+                <div style="font-size: 3rem; margin: 20px 0;">✨ ⚙️ 📄</div>
+                <p class="small-text mb-15">Our AI translates your raw thoughts into a professional Scrum update.</p>
+                <button class="primary-btn haptic-btn mt-20" onclick="App.tourStep++; App.renderTourStep()">Next ➡️</button>`;
         } else if (App.tourStep === 3) {
-            content.innerHTML = `<h2 class="accent-text mb-15">3. Smart Reminders</h2>
-                <p class="small-text mb-15">Set Morning and Evening alerts in Settings to stay on track!</p>
-                <button class="primary-btn mt-20" onclick="App.finishTour()">Get Started</button>`;
+            content.innerHTML = `<h2 class="accent-text mb-15">3. Speak Clearly</h2>
+                <div style="font-size: 3rem; margin: 20px 0;">😎 🚀 📈</div>
+                <p class="small-text mb-15">Copy your update, speak with confidence, and never fear Stand-ups again!</p>
+                <button class="primary-btn haptic-btn mt-20" onclick="App.finishTour()">Let's Go!</button>`;
         }
     },
     finishTour: () => {
@@ -92,8 +114,20 @@ const App = {
 // 2. UI MODULE
 // ==========================================
 const UI = {
-    openModal: (id) => { if ($(id)) { $(id).style.display = 'flex'; document.body.classList.add('no-scroll'); } },
-    closeModal: (id) => { if ($(id)) { $(id).style.display = 'none'; document.body.classList.remove('no-scroll'); } },
+    openModal: (id) => { 
+        if ($(id)) { 
+            $(id).style.display = 'flex'; 
+            document.body.classList.add('no-scroll');
+            history.pushState({ modal: id }, "", "#" + id); 
+        } 
+    },
+    closeModal: (id) => { 
+        if ($(id)) { 
+            $(id).style.display = 'none'; 
+            document.body.classList.remove('no-scroll'); 
+            if (history.state && history.state.modal === id) history.back();
+        } 
+    },
     
     switchOutputTab: (tab, btnElement) => {
         document.querySelectorAll('.output-panel .tab-btn').forEach(b => b.classList.remove('active'));
@@ -115,7 +149,7 @@ const UI = {
     openArchive: () => {
         UI.openModal('historyModal');
         if ($('universalSearch')) $('universalSearch').value = ''; 
-        Archive.renderList();
+        Archive.filter('all', document.querySelector('#archiveFilters .secondary-btn')); // Reset filter
     }
 };
 
@@ -124,6 +158,24 @@ const UI = {
 // ==========================================
 const Engine = {
     notifInterval: null,
+    
+    // Live Alerts / Notifications Permission Logic
+    toggleNotifications: () => {
+        if (!("Notification" in window)) return alert("Your browser doesn't support notifications.");
+        
+        if (Notification.permission === "granted") {
+            alert("Alerts are already active! You will be notified at your set times.");
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    Engine.initNotifications();
+                } else {
+                    alert("Notification permission denied.");
+                }
+            });
+        }
+    },
+
     initNotifications: () => {
         const btn = $('notifBtn');
         if (Notification.permission === 'granted' && btn) {
@@ -136,19 +188,52 @@ const Engine = {
                 const now = new Date();
                 const currentTime = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
                 if((currentTime === time1 || currentTime === time2) && now.getSeconds() < 10) { 
-                    new Notification("SANRAI Alert", { body: "Time to prep your Scrum notes!", icon: "https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" });
+                    new Notification("SANRAI Alert", { body: "Time to prep your Scrum notes!", icon: "logo.png" });
                 }
             }, 10000); 
         }
     },
 
     startVoice: (elementId) => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            return alert("Voice dictation is not supported in this browser.");
+        }
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-IN';
+        const micBtn = $('micButton');
+        
+        recognition.onstart = () => {
+            if(micBtn) micBtn.classList.add('recording'); // Triggers CSS animation
+        };
+        recognition.onend = () => {
+            if(micBtn) micBtn.classList.remove('recording');
+        };
+        recognition.onerror = () => {
+            if(micBtn) micBtn.classList.remove('recording');
+            alert("Microphone error. Check permissions.");
+        };
+
         recognition.onresult = (e) => {
             if ($(elementId)) $(elementId).value += ( $(elementId).value ? ' ' : '' ) + e.results[0][0].transcript;
         };
         recognition.start();
+    },
+
+    exportCSV: () => {
+        const table = $('exportableTable');
+        if(!table) return alert("No timesheet generated yet.");
+        let csv = [];
+        let rows = table.querySelectorAll("tr");
+        for(let i=0; i<rows.length; i++) {
+            let row = [], cols = rows[i].querySelectorAll("td, th");
+            for(let j=0; j<cols.length; j++) row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
+            csv.push(row.join(","));
+        }
+        const blob = new Blob([csv.join("\n")], {type: "text/csv"});
+        const a = document.createElement("a");
+        a.href = window.URL.createObjectURL(blob);
+        a.download = "Sanrai_Timesheet.csv";
+        a.click();
     },
 
     generateOutput: async () => {
@@ -160,10 +245,15 @@ const Engine = {
         if (!apiKey) return UI.openModal('settingsModal');
         if (!rawData) return alert("Please dump some notes first.");
 
-        btn.innerText = "Structuring Data...";
+        // Client-Side Thinking UI
         btn.disabled = true;
+        let step = 0;
+        const thinkingPhrases = ["Reading your chaos...", "Translating to Corporate...", "Building Timesheet...", "Finalizing..."];
+        const thinkInterval = setInterval(() => {
+            btn.innerText = thinkingPhrases[step % thinkingPhrases.length];
+            step++;
+        }, 1500);
 
-        // FIXED: Using Back-ticks properly
         const prompt = `You are an insightful Technical Lead and Agile Coach. 
         Your job is to process the following raw IT employee input through a strict 4-STEP INTERNAL PIPELINE.
 
@@ -221,9 +311,13 @@ const Engine = {
             Archive.save(workDate, yest, tod, block, ts); 
             $('rawInput').value = '';
             localStorage.removeItem('draft_rawInput');
+            
+            if(navigator.vibrate) navigator.vibrate([50, 50, 100]); // Success vibration
+
         } catch (error) {
             alert("Error: " + error.message);
         } finally {
+            clearInterval(thinkInterval);
             btn.innerText = "✨ Auto-Structure with AI";
             btn.disabled = false;
         }
@@ -247,7 +341,7 @@ const Engine = {
 };
 
 // ==========================================
-// 4. ARCHIVE MODULE (RESTORED MISSING LOGIC)
+// 4. ARCHIVE MODULE
 // ==========================================
 const Archive = {
     currentTab: 'history',
@@ -266,19 +360,58 @@ const Archive = {
         Archive.renderList();
     },
 
+    // Apply Filter (All, Today, Yesterday, Week)
+    filter: (range, btnElement) => {
+        Archive.currentFilter = range;
+        
+        // UI Button styling
+        const filterBtns = document.querySelectorAll('#archiveFilters .secondary-btn');
+        filterBtns.forEach(btn => {
+            btn.style.background = 'transparent';
+            btn.style.color = 'var(--text-primary)';
+        });
+        if(btnElement) {
+            btnElement.style.background = 'var(--accent)';
+            btnElement.style.color = '#0f172a';
+        }
+
+        Archive.renderList();
+    },
+
     renderList: () => {
         const list = $('historyList');
         if (!list) return;
         list.innerHTML = '';
         let targetData = Archive.currentTab === 'history' ? sanraiData.history : sanraiData.bin;
         
+        // 1. Apply Search
         const query = $('universalSearch') ? $('universalSearch').value.toLowerCase() : '';
         if (query) {
-            targetData = targetData.filter(item => `${item.date} ${item.yesterday}`.toLowerCase().includes(query));
+            targetData = targetData.filter(item => 
+                `${item.date} ${item.yesterday} ${item.today} ${item.blockers}`.toLowerCase().includes(query)
+            );
+        }
+
+        // 2. Apply Date Filters
+        if (Archive.currentFilter !== 'all') {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            targetData = targetData.filter(item => {
+                const itemDate = new Date(item.date);
+                itemDate.setHours(0,0,0,0);
+                const diffTime = Math.abs(today - itemDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                
+                if (Archive.currentFilter === 'today') return diffDays === 0;
+                if (Archive.currentFilter === 'yesterday') return diffDays === 1;
+                if (Archive.currentFilter === 'week') return diffDays <= 7;
+                return true;
+            });
         }
 
         if (targetData.length === 0) {
-            list.innerHTML = `<p class="hint-text">No records found.</p>`;
+            list.innerHTML = `<p class="hint-text" style="text-align:center; margin-top:20px;">No records found.</p>`;
             return;
         }
 
@@ -288,12 +421,13 @@ const Archive = {
                     <div class="history-date"><span>Work Date: ${item.date}</span></div>
                     <div class="history-view-content">
                         <b>Yesterday:</b> ${item.yesterday}<br>
-                        <b>Today:</b> ${item.today}
+                        <b>Today:</b> ${item.today}<br>
+                        ${item.blockers && item.blockers !== 'None' ? `<b style="color:var(--danger)">Blockers:</b> ${item.blockers}` : ''}
                     </div>
                     <div class="history-actions no-print">
                         ${Archive.currentTab === 'history' 
-                            ? `<button class="action-btn" onclick="Archive.moveToBin(${item.id})">🗑️ Delete</button>`
-                            : `<button class="action-btn" onclick="Archive.restore(${item.id})">♻️ Restore</button>`}
+                            ? `<button class="action-btn haptic-btn" onclick="Archive.moveToBin(${item.id})">🗑️ Delete</button>`
+                            : `<button class="action-btn haptic-btn" onclick="Archive.restore(${item.id})">♻️ Restore</button>`}
                     </div>
                 </div>
             `;
