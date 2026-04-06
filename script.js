@@ -158,6 +158,8 @@ const UI = {
 // ==========================================
 const Engine = {
     notifInterval: null,
+    mediaRecorderInstance: null,
+    audioChunks: [],
     
     // Live Alerts / Notifications Permission Logic
     toggleNotifications: () => {
@@ -194,7 +196,77 @@ const Engine = {
         }
     },
 
-        
+    // NEW DIRECT AUDIO TO GEMINI LOGIC
+    startVoice: async (elementId) => {
+        const micBtn = $('micButton');
+        const apiKey = $('apiKey').value.trim();
+
+        if (!apiKey) {
+            UI.openModal('settingsModal');
+            return alert("Please enter your Gemini API Key in settings to use the Voice feature.");
+        }
+
+        // If currently recording, stop it and process the audio
+        if (Engine.mediaRecorderInstance && Engine.mediaRecorderInstance.state === "recording") {
+            Engine.mediaRecorderInstance.stop();
+            micBtn.classList.remove('recording');
+            micBtn.innerText = "⏳"; 
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            Engine.mediaRecorderInstance = new MediaRecorder(stream);
+            Engine.audioChunks = [];
+
+            Engine.mediaRecorderInstance.ondataavailable = event => {
+                Engine.audioChunks.push(event.data);
+            };
+
+            Engine.mediaRecorderInstance.onstop = async () => {
+                const audioBlob = new Blob(Engine.audioChunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const base64Audio = reader.result.split(',')[1];
+                    
+                    try {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [
+                                        { text: "Transcribe this audio exactly as you hear it. If it's Telugu, write in Telugu script or Manglish. Only return the raw transcription text, no extra words or explanations." },
+                                        { inlineData: { mimeType: "audio/webm", data: base64Audio } }
+                                    ]
+                                }]
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.candidates && data.candidates[0]) {
+                            const transcript = data.candidates[0].content.parts[0].text.trim();
+                            $(elementId).value += ($(elementId).value ? ' ' : '') + transcript;
+                        } else {
+                            alert("AI could not understand the audio.");
+                        }
+                    } catch (err) {
+                        alert("Audio processing error: " + err.message);
+                    } finally {
+                        micBtn.innerText = "🎙️"; 
+                    }
+                };
+            };
+
+            Engine.mediaRecorderInstance.start();
+            micBtn.classList.add('recording');
+            micBtn.innerText = "⏹️"; 
+
+        } catch (err) {
+            alert("Microphone access denied. Please check your browser permissions.");
+            console.error("Mic error:", err);
+        }
+    },
 
     exportCSV: () => {
         const table = $('exportableTable');
@@ -202,59 +274,7 @@ const Engine = {
         let csv = [];
         let rows = table.querySelectorAll("tr");
         for(let i=0; i<rows.length; i++) {
-      
-                startVoice: (elementId) => { // స్మాల్ 's' తో ఉండాలి
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            return alert("Voice dictation is not supported in this browser.");
-        }
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        
-        // గ్లోబల్ లాంగ్వేజ్ సపోర్ట్ కోసం lang ని పీకేశాం
-        
-        const micBtn = $('micButton');
-        
-        recognition.onstart = () => {
-            if(micBtn) micBtn.classList.add('recording'); 
-        };
-        recognition.onend = () => {
-            if(micBtn) micBtn.classList.remove('recording');
-        };
-        recognition.onerror = (event) => {
-            if(micBtn) micBtn.classList.remove('recording');
-            if (event.error === 'not-allowed') {
-                alert("Microphone Blocked! Please go to your browser's Settings > Site Settings > Microphone, and 'Allow' access.");
-            } else if (event.error === 'no-speech') {
-                console.log("No speech detected.");
-            } else {
-                alert("Microphone error: " + event.error);
-            }
-        };
-
-        // మిస్ అయిన కోడ్ 1: టెక్స్ట్ బాక్స్ లో వాయిస్ ని ప్రింట్ చేయడం
-        recognition.onresult = (e) => {
-            if ($(elementId)) $(elementId).value += ( $(elementId).value ? ' ' : '' ) + e.results[0][0].transcript;
-        };
-        
-        // మిస్ అయిన కోడ్ 2: అసలు మైక్ ని స్టార్ట్ చేయడం
-        try {
-            recognition.start();
-        } catch (err) {
-            console.error("Mic start error:", err);
-        }
-    },
-
-        recognition.onresult = (e) => {
-            if ($(elementId)) $(elementId).value += ( $(elementId).value ? ' ' : '' ) + e.results[0][0].transcript;
-        };
-        
-        try {
-            recognition.start();
-        } catch (err) {
-            console.error("Mic start error:", err);
-        }
-    },
-
-          let row = [], cols = rows[i].querySelectorAll("td, th");
+            let row = [], cols = rows[i].querySelectorAll("td, th");
             for(let j=0; j<cols.length; j++) row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
             csv.push(row.join(","));
         }
@@ -437,59 +457,4 @@ const Archive = {
                 if (Archive.currentFilter === 'week') return diffDays <= 7;
                 return true;
             });
-        }
-
-        if (targetData.length === 0) {
-            list.innerHTML = `<p class="hint-text" style="text-align:center; margin-top:20px;">No records found.</p>`;
-            return;
-        }
-
-        targetData.forEach(item => {
-            list.innerHTML += `
-                <div class="history-item">
-                    <div class="history-date"><span>Work Date: ${item.date}</span></div>
-                    <div class="history-view-content">
-                        <b>Yesterday:</b> ${item.yesterday}<br>
-                        <b>Today:</b> ${item.today}<br>
-                        ${item.blockers && item.blockers !== 'None' ? `<b style="color:var(--danger)">Blockers:</b> ${item.blockers}` : ''}
-                    </div>
-                    <div class="history-actions no-print">
-                        ${Archive.currentTab === 'history' 
-                            ? `<button class="action-btn haptic-btn" onclick="Archive.moveToBin(${item.id})">🗑️ Delete</button>`
-                            : `<button class="action-btn haptic-btn" onclick="Archive.restore(${item.id})">♻️ Restore</button>`}
-                    </div>
-                </div>
-            `;
-        });
-    },
-
-    moveToBin: (id) => {
-        const idx = sanraiData.history.findIndex(i => i.id === id);
-        if(idx > -1) {
-            const item = sanraiData.history.splice(idx, 1)[0];
-            item.deleteDate = Date.now();
-            sanraiData.bin.unshift(item);
-            localStorage.setItem('sanraiData', JSON.stringify(sanraiData));
-            Archive.renderList();
-        }
-    },
-
-    restore: (id) => {
-        const idx = sanraiData.bin.findIndex(i => i.id === id);
-        if(idx > -1) {
-            const item = sanraiData.bin.splice(idx, 1)[0];
-            delete item.deleteDate; 
-            sanraiData.history.unshift(item);
-            localStorage.setItem('sanraiData', JSON.stringify(sanraiData));
-            Archive.renderList();
-        }
-    },
-
-    cleanBin: () => {
-        const now = Date.now();
-        sanraiData.bin = sanraiData.bin.filter(item => (now - item.deleteDate) < (90 * 86400000));
-        localStorage.setItem('sanraiData', JSON.stringify(sanraiData));
-    }
-};
-
-window.onload = App.init;
+        
