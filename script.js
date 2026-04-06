@@ -194,29 +194,36 @@ const Engine = {
         }
     },
 
-        startVoice: (elementId) => {
+        
+
+    exportCSV: () => {
+        const table = $('exportableTable');
+        if(!table) return alert("No timesheet generated yet.");
+        let csv = [];
+        let rows = table.querySelectorAll("tr");
+        for(let i=0; i<rows.length; i++) {
+      startVoice: (elementId) => {
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
             return alert("Voice dictation is not supported in this browser.");
         }
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-IN';
+        
+        // FIX: Removed "recognition.lang = 'en-IN';" completely. 
+        // Now it globally adapts to the User's Device Default Language!
+
         const micBtn = $('micButton');
         
         recognition.onstart = () => {
-            if(micBtn) micBtn.classList.add('recording'); // Triggers CSS animation
+            if(micBtn) micBtn.classList.add('recording'); 
         };
         recognition.onend = () => {
             if(micBtn) micBtn.classList.remove('recording');
         };
-        
-        // FIX: Better Error Handling for Mobile Browsers
         recognition.onerror = (event) => {
             if(micBtn) micBtn.classList.remove('recording');
-            
             if (event.error === 'not-allowed') {
-                alert("Microphone Blocked! Please tap the 'Lock' icon in your browser address bar and allow Microphone access.");
+                alert("Microphone Blocked! Please go to your browser's Settings > Site Settings > Microphone, and 'Allow' access.");
             } else if (event.error === 'no-speech') {
-                // User didn't speak in time. Don't show an annoying alert, just stop recording smoothly.
                 console.log("No speech detected.");
             } else {
                 alert("Microphone error: " + event.error);
@@ -234,13 +241,7 @@ const Engine = {
         }
     },
 
-    exportCSV: () => {
-        const table = $('exportableTable');
-        if(!table) return alert("No timesheet generated yet.");
-        let csv = [];
-        let rows = table.querySelectorAll("tr");
-        for(let i=0; i<rows.length; i++) {
-            let row = [], cols = rows[i].querySelectorAll("td, th");
+          let row = [], cols = rows[i].querySelectorAll("td, th");
             for(let j=0; j<cols.length; j++) row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
             csv.push(row.join(","));
         }
