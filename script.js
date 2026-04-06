@@ -1,17 +1,14 @@
 let sanraiData = JSON.parse(localStorage.getItem('sanraiData')) || { history: [], bin: [] };
 
-// Helper to safely get element
 const $ = (id) => document.getElementById(id);
 
 // --- GLOBAL HARDWARE INTEGRATIONS ---
-// Haptic Feedback for buttons
 document.body.addEventListener('click', (e) => {
     if(e.target.closest('.haptic-btn') && navigator.vibrate) {
-        navigator.vibrate(30); // Short tap vibration
+        navigator.vibrate(30);
     }
 });
 
-// Hardware Back Button to close modals instead of exiting app
 window.addEventListener('popstate', (e) => {
     document.querySelectorAll('.modal, .overlay').forEach(m => {
         if(m.id !== 'consentOverlay' && m.id !== 'tourOverlay') m.style.display = 'none';
@@ -82,7 +79,6 @@ const App = {
         App.renderTourStep();
     },
     
-    // Highly visual, emoji-driven tour
     renderTourStep: () => {
         const content = $('tourContent');
         if (!content) return;
@@ -103,6 +99,7 @@ const App = {
                 <button class="primary-btn haptic-btn mt-20" onclick="App.finishTour()">Let's Go!</button>`;
         }
     },
+    
     finishTour: () => {
         if ($('tourOverlay')) $('tourOverlay').style.display = 'none';
         document.body.classList.remove('no-scroll');
@@ -149,7 +146,7 @@ const UI = {
     openArchive: () => {
         UI.openModal('historyModal');
         if ($('universalSearch')) $('universalSearch').value = ''; 
-        Archive.filter('all', document.querySelector('#archiveFilters .secondary-btn')); // Reset filter
+        Archive.filter('all'); 
     }
 };
 
@@ -161,7 +158,6 @@ const Engine = {
     mediaRecorderInstance: null,
     audioChunks: [],
     
-    // Live Alerts / Notifications Permission Logic
     toggleNotifications: () => {
         if (!("Notification" in window)) return alert("Your browser doesn't support notifications.");
         
@@ -196,7 +192,7 @@ const Engine = {
         }
     },
 
-    // NEW: DIRECT AUDIO RECORDING TO GEMINI API
+    // DIRECT AUDIO RECORDING TO GEMINI API
     startVoice: async (elementId) => {
         const micBtn = $('micButton');
         const apiKey = $('apiKey').value.trim();
@@ -206,11 +202,11 @@ const Engine = {
             return alert("Please enter your Gemini API Key in settings to use the Voice feature.");
         }
 
-        // If already recording, STOP the recording and start processing
+        // If recording is running, Stop it and send to Gemini
         if (Engine.mediaRecorderInstance && Engine.mediaRecorderInstance.state === "recording") {
             Engine.mediaRecorderInstance.stop();
             micBtn.classList.remove('recording');
-            micBtn.innerText = "⏳"; // Show loading icon
+            micBtn.innerText = "⏳"; 
             return;
         }
 
@@ -253,20 +249,19 @@ const Engine = {
                     } catch (err) {
                         alert("Audio processing error: " + err.message);
                     } finally {
-                        micBtn.innerText = "🎙️"; // Change back to mic icon
+                        micBtn.innerText = "🎙️"; 
                     }
                 };
-
-                // Stop hardware mic tracks to save battery
+                
                 stream.getTracks().forEach(track => track.stop());
             };
 
             Engine.mediaRecorderInstance.start();
             micBtn.classList.add('recording');
-            micBtn.innerText = "⏹️"; // Change to stop button
+            micBtn.innerText = "⏹️"; 
 
         } catch (err) {
-            alert("Microphone access denied. Please allow microphone permissions in your browser settings.");
+            alert("Microphone access denied. Please check your browser permissions.");
             console.error("Mic error:", err);
         }
     },
@@ -297,7 +292,6 @@ const Engine = {
         if (!apiKey) return UI.openModal('settingsModal');
         if (!rawData) return alert("Please dump some notes first.");
 
-        // Client-Side Thinking UI
         btn.disabled = true;
         let step = 0;
         const thinkingPhrases = ["Reading your chaos...", "Translating to Corporate...", "Building Timesheet...", "Finalizing..."];
@@ -313,7 +307,7 @@ const Engine = {
 
         --- TONE & STYLE GUIDELINES (CRITICAL) ---
         Translate the input into professional but NATURAL, simple English. 
-        AVOID overly complex corporate jargon, robotic AI buzzwords, or highly senior architectural terms (e.g., avoid "cross-functional coordination", "cyclomatic complexity", "unannounced payload schema"). 
+        AVOID overly complex corporate jargon, robotic AI buzzwords, or highly senior architectural terms. 
         Write it exactly how a sensible junior or mid-level developer would naturally speak in a daily stand-up—clear, confident, to the point, but realistic.
 
         --- INTERNAL PIPELINE ---
@@ -364,7 +358,7 @@ const Engine = {
             $('rawInput').value = '';
             localStorage.removeItem('draft_rawInput');
             
-            if(navigator.vibrate) navigator.vibrate([50, 50, 100]); // Success vibration
+            if(navigator.vibrate) navigator.vibrate([50, 50, 100]);
 
         } catch (error) {
             alert("Error: " + error.message);
@@ -399,6 +393,10 @@ const Archive = {
     currentTab: 'history',
     currentFilter: 'all',
 
+    // Fix: Added missing functions that were causing bugs in UI
+    search: () => Archive.renderList(),
+    downloadPDF: () => window.print(),
+
     save: (dateStr, y, t, b, ts) => {
         sanraiData.history.unshift({ id: Date.now(), date: dateStr, timestamp: Date.now(), yesterday: y, today: t, blockers: b, timesheetCSV: ts });
         sanraiData.history.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -412,21 +410,17 @@ const Archive = {
         Archive.renderList();
     },
 
-    // Apply Filter (All, Today, Yesterday, Week)
-    filter: (range, btnElement) => {
+    filter: (range) => {
         Archive.currentFilter = range;
-        
-        // UI Button styling
         const filterBtns = document.querySelectorAll('#archiveFilters .secondary-btn');
         filterBtns.forEach(btn => {
             btn.style.background = 'transparent';
             btn.style.color = 'var(--text-primary)';
+            if(btn.innerText.toLowerCase() === range.toLowerCase()) {
+                btn.style.background = 'var(--accent)';
+                btn.style.color = '#0f172a';
+            }
         });
-        if(btnElement) {
-            btnElement.style.background = 'var(--accent)';
-            btnElement.style.color = '#0f172a';
-        }
-
         Archive.renderList();
     },
 
@@ -436,7 +430,6 @@ const Archive = {
         list.innerHTML = '';
         let targetData = Archive.currentTab === 'history' ? sanraiData.history : sanraiData.bin;
         
-        // 1. Apply Search
         const query = $('universalSearch') ? $('universalSearch').value.toLowerCase() : '';
         if (query) {
             targetData = targetData.filter(item => 
@@ -444,7 +437,6 @@ const Archive = {
             );
         }
 
-        // 2. Apply Date Filters
         if (Archive.currentFilter !== 'all') {
             const today = new Date();
             today.setHours(0,0,0,0);
@@ -455,4 +447,19 @@ const Archive = {
                 const diffTime = Math.abs(today - itemDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
                 
-                if (Archive.current
+                if (Archive.currentFilter === 'today') return diffDays === 0;
+                if (Archive.currentFilter === 'yesterday') return diffDays === 1;
+                if (Archive.currentFilter === 'week') return diffDays <= 7;
+                return true;
+            });
+        }
+
+        if (targetData.length === 0) {
+            list.innerHTML = `<p class="hint-text" style="text-align:center; margin-top:20px;">No records found.</p>`;
+            return;
+        }
+
+        targetData.forEach(item => {
+            list.innerHTML += `
+                <div class="history-item">
+                    <div class="h
