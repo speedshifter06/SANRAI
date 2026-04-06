@@ -194,7 +194,7 @@ const Engine = {
         }
     },
 
-    startVoice: (elementId) => {
+        startVoice: (elementId) => {
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
             return alert("Voice dictation is not supported in this browser.");
         }
@@ -208,15 +208,30 @@ const Engine = {
         recognition.onend = () => {
             if(micBtn) micBtn.classList.remove('recording');
         };
-        recognition.onerror = () => {
+        
+        // FIX: Better Error Handling for Mobile Browsers
+        recognition.onerror = (event) => {
             if(micBtn) micBtn.classList.remove('recording');
-            alert("Microphone error. Check permissions.");
+            
+            if (event.error === 'not-allowed') {
+                alert("Microphone Blocked! Please tap the 'Lock' icon in your browser address bar and allow Microphone access.");
+            } else if (event.error === 'no-speech') {
+                // User didn't speak in time. Don't show an annoying alert, just stop recording smoothly.
+                console.log("No speech detected.");
+            } else {
+                alert("Microphone error: " + event.error);
+            }
         };
 
         recognition.onresult = (e) => {
             if ($(elementId)) $(elementId).value += ( $(elementId).value ? ' ' : '' ) + e.results[0][0].transcript;
         };
-        recognition.start();
+        
+        try {
+            recognition.start();
+        } catch (err) {
+            console.error("Mic start error:", err);
+        }
     },
 
     exportCSV: () => {
