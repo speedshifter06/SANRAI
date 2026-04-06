@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANRAI | Workspace</title>
+    <title>SANRAI | Workflow Engine</title>
     <link rel="icon" href="https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" type="image/webp">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
@@ -30,9 +30,9 @@
             SANRAI <span class="beta-tag">BETA</span>
         </div>
         <div class="nav-actions">
-            <button class="icon-btn haptic-btn" onclick="Engine.toggleNotifications()" id="notifBtn">🔔 Alerts</button>
-            <button class="icon-btn haptic-btn" onclick="UI.openModal('historyModal')">📊 Archive</button>
-            <button class="icon-btn haptic-btn" onclick="UI.openModal('settingsModal')">⚙️ Settings</button>
+            <button class="icon-btn haptic-btn" onclick="Engine.toggleNotifications()" title="Scrum Notifications" id="notifBtn">🔔 Alerts: Off</button>
+            <button class="icon-btn haptic-btn" onclick="UI.openArchive()" title="Universal Search & Archive">📊 Archive</button>
+            <button class="icon-btn haptic-btn" onclick="UI.openModal('settingsModal')" title="System Setup">⚙️ Settings</button>
         </div>
     </header>
 
@@ -47,7 +47,7 @@
             
             <div class="textarea-wrapper mt-15">
                 <textarea id="rawInput" placeholder="E.g., deployment error in morning, talked to devops guy..."></textarea>
-                <button class="mic-btn haptic-btn" id="micButton" onclick="Engine.startVoice('rawInput')" title="Voice Dictation">🎙️</button>
+                <button class="mic-btn haptic-btn" id="micButton" onclick="Engine.startVoice('rawInput')" title="Voice Assistant">🎙️</button>
             </div>
 
             <button id="generateBtn" class="primary-btn haptic-btn mt-20" onclick="Engine.generateOutput()">✨ Auto-Structure with AI</button>
@@ -56,7 +56,7 @@
         <section class="panel output-panel">
             <h2 class="section-title no-print">Clarity & Focus</h2>
             
-            <div class="tabs no-print mt-15">
+            <div class="tabs no-print">
                 <button class="tab-btn active haptic-btn" onclick="UI.switchOutputTab('scrum', this)">Scrum Prep</button>
                 <button class="tab-btn haptic-btn" onclick="UI.switchOutputTab('timesheet', this)">Timesheet</button>
             </div>
@@ -94,6 +94,16 @@
         </section>
     </main>
 
+    <footer class="no-print">
+        <div class="legal-links">
+            <a href="#" onclick="UI.openModal('aboutModal')">About Us</a>
+            <a href="#" onclick="UI.openModal('privacyModal')">Privacy Policy</a>
+            <a href="#" onclick="UI.openModal('termsModal')">Terms & Conditions</a>
+        </div>
+        <div class="credit">All rights reserved &copy; 2026 <b>SANRAI</b></div>
+        <div class="ai-disclaimer">SANRAI uses AI and can make mistakes. Please verify generated data.</div>
+    </footer>
+
     <div id="historyModal" class="modal">
         <div class="modal-content large-modal">
             <div class="modal-header">
@@ -111,13 +121,58 @@
             </div>
 
             <div class="action-row mt-0 mb-15" id="archiveFilters">
-                <button class="secondary-btn haptic-btn" onclick="Archive.filter('today')">Today</button>
-                <button class="secondary-btn haptic-btn" onclick="Archive.filter('yesterday')">Yesterday</button>
-                <button class="secondary-btn haptic-btn" onclick="Archive.filter('week')">Week</button>
-                <button class="secondary-btn haptic-btn" onclick="Archive.filter('all')">All</button>
-            </div>
+                <button class="secondary-btn haptic-btn active-filter" onclick="Archive.filter('all', this)">All</button>
+                <button class="secondary-btn haptic-btn" onclick="Archive.filter('today', this)">Today</button>
+                <button class="secondary-btn haptic-btn" onclick="Archive.filter('yesterday', this)">Yesterday</button>
+                <button class="secondary-btn haptic-btn" onclick="Archive.filter('week', this)">Week</button>
+                </div>
             
             <div id="historyList" class="data-list"></div>
+        </div>
+    </div>
+
+    <div id="aboutModal" class="modal">
+        <div class="modal-content scrollable-modal">
+            <div class="modal-header">
+                <h3>About SANRAI</h3>
+                <button class="close-btn haptic-btn" onclick="UI.closeModal('aboutModal')">×</button>
+            </div>
+            <div class="emotional-text">
+                <h4 class="accent-text">The Problem</h4>
+                <p>We are tired of seeing brilliant developers burn out over administrative tasks. You shouldn't have to feel a knot of anxiety every morning at 9:55 AM, frantically figuring out what to say in your 10:00 AM Scrum call.</p>
+                <h4 class="accent-text">The Solution</h4>
+                <p>SANRAI translates your chaotic, unstructured, deeply technical workday into the rigid, polished reporting formats your management demands. You just dump your thoughts. We do the corporate translation.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="privacyModal" class="modal">
+        <div class="modal-content scrollable-modal">
+            <div class="modal-header">
+                <h3>Privacy Policy</h3>
+                <button class="close-btn haptic-btn" onclick="UI.closeModal('privacyModal')">×</button>
+            </div>
+            <div class="legal-text">
+                <h4 class="accent-text">100% Local. Zero Backend.</h4>
+                <p>Your work notes are your intellectual property. SANRAI operates purely as a "Local-First" application. Everything is stored in your browser's LocalStorage. We possess zero backend databases. We cannot see, sell, or analyze your data.</p>
+                <h4 class="accent-text">Bring Your Own Key (BYOK)</h4>
+                <p>Data goes straight from your browser to Google's Gemini API. We act only as the interface. Clearing your browser cache permanently destroys all your SANRAI data.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="termsModal" class="modal">
+        <div class="modal-content scrollable-modal">
+            <div class="modal-header">
+                <h3>Terms & Conditions</h3>
+                <button class="close-btn haptic-btn" onclick="UI.closeModal('termsModal')">×</button>
+            </div>
+            <div class="legal-text">
+                <h4 class="accent-text">Your Responsibility</h4>
+                <p>SANRAI is a productivity tool. It is your strict responsibility to verify the accuracy of AI-generated stand-ups before submission. Do not paste highly sensitive or classified company secrets into the API.</p>
+                <h4 class="accent-text">No Liability</h4>
+                <p>Due to the local-first nature, we cannot recover lost data if you clear your browser. Use the Export features regularly.</p>
+            </div>
         </div>
     </div>
 
@@ -131,7 +186,9 @@
             <label class="small-text mb-15">Gemini API Key</label>
             <div class="pwd-wrapper mb-15">
                 <input type="password" id="apiKey" class="text-input" placeholder="Enter secure key here">
-                <button class="eye-btn haptic-btn" onclick="UI.togglePassword()">👁️</button>
+                <button class="eye-btn haptic-btn" onclick="UI.togglePassword()">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
             </div>
 
             <label class="small-text mb-15">Daily Scrum Time 1 (Morning)</label>
@@ -143,8 +200,8 @@
             <button class="primary-btn haptic-btn mt-15" onclick="App.saveSettings()">Save Configuration</button>
             
             <div style="border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px; text-align: center;">
-                <p class="small-text mb-15">Need a quick guide?</p>
-                <button class="secondary-btn haptic-btn" onclick="App.startTour()">🚀 Start Visual Tour</button>
+                <p class="small-text mb-15">Need help understanding how to use SANRAI?</p>
+                <button class="secondary-btn haptic-btn" onclick="App.startTour()">🚀 Start App Tour</button>
             </div>
         </div>
     </div>
