@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANRAI | Workflow Engine</title>
+    <title>SANRAI | Workspace</title>
     <link rel="icon" href="https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" type="image/webp">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
@@ -14,9 +14,9 @@
         <div class="consent-card">
             <img src="https://uploads.onecompiler.io/44hamhdu3/44j87h6rm/1000074177.webp" alt="SANRAI" style="height: 50px; margin-bottom: 15px;">
             <h2 class="accent-text">Welcome to SANRAI</h2>
-            <p>To automate your workflow, Sanjirai needs permission to process your notes securely using your Gemini API key.</p>
-            <p class="small-text mt-15">Your data remains 100% local. We have no backend servers.</p>
-            <button class="primary-btn mt-20" onclick="App.acceptConsent()">I Consent & Continue</button>
+            <p>To automate your workflow, Sanrai processes your notes locally using your secure API key.</p>
+            <p class="small-text mt-15" style="color: var(--success);">🔒 100% Local. Zero backend servers.</p>
+            <button class="primary-btn mt-20 haptic-btn" onclick="App.acceptConsent()">I Consent & Continue</button>
         </div>
     </div>
 
@@ -30,9 +30,9 @@
             SANRAI <span class="beta-tag">BETA</span>
         </div>
         <div class="nav-actions">
-            <button class="icon-btn" onclick="Engine.toggleNotifications()" title="Scrum Notifications" id="notifBtn">🔔 Alerts: Off</button>
-            <button class="icon-btn" onclick="UI.openArchive()" title="Universal Search & Archive">📊 Archive</button>
-            <button class="icon-btn" onclick="UI.openModal('settingsModal')" title="System Setup">⚙️ Settings</button>
+            <button class="icon-btn haptic-btn" onclick="Engine.toggleNotifications()" id="notifBtn">🔔 Alerts</button>
+            <button class="icon-btn haptic-btn" onclick="UI.openModal('historyModal')">📊 Archive</button>
+            <button class="icon-btn haptic-btn" onclick="UI.openModal('settingsModal')">⚙️ Settings</button>
         </div>
     </header>
 
@@ -41,159 +41,83 @@
         <section class="panel input-panel no-print">
             <div class="header-row">
                 <h2 class="section-title">The Brain Dump</h2>
-                <input type="date" id="workDate" class="date-picker" title="Select work date">
+                <input type="date" id="workDate" class="date-picker haptic-btn" title="Select work date">
             </div>
-            <p class="hint-text">Dump your raw, messy notes here. E.g., "met akhil 10am, debugging till 2, blockers: waiting for api".</p>
+            <p class="hint-text">Type exactly what comes to your mind. Broken English? Slang? It doesn't matter.</p>
             
-            <div class="textarea-wrapper">
-                <textarea id="rawInput" placeholder="Start typing your day's activities..."></textarea>
-                <button class="mic-btn" onclick="Engine.startVoice('rawInput')" title="Voice Assistant">🎙️</button>
+            <div class="textarea-wrapper mt-15">
+                <textarea id="rawInput" placeholder="E.g., deployment error in morning, talked to devops guy..."></textarea>
+                <button class="mic-btn haptic-btn" id="micButton" onclick="Engine.startVoice('rawInput')" title="Voice Dictation">🎙️</button>
             </div>
 
-            <button id="generateBtn" class="primary-btn" onclick="Engine.generateOutput()">✨ Auto-Structure with AI</button>
+            <button id="generateBtn" class="primary-btn haptic-btn mt-20" onclick="Engine.generateOutput()">✨ Auto-Structure with AI</button>
         </section>
 
         <section class="panel output-panel">
             <h2 class="section-title no-print">Clarity & Focus</h2>
             
-            <div class="tabs no-print">
-                <button class="tab-btn active" onclick="UI.switchOutputTab('scrum', this)">Scrum Prep</button>
-                <button class="tab-btn" onclick="UI.switchOutputTab('timesheet', this)">Timesheet</button>
+            <div class="tabs no-print mt-15">
+                <button class="tab-btn active haptic-btn" onclick="UI.switchOutputTab('scrum', this)">Scrum Prep</button>
+                <button class="tab-btn haptic-btn" onclick="UI.switchOutputTab('timesheet', this)">Timesheet</button>
             </div>
 
-            <div id="scrumView" class="output-box">
-                <div id="aiMotivation" class="motivation-text no-print">Ready to structure your day.</div>
+            <div id="scrumView" class="output-box mt-15">
+                <div id="aiMotivation" class="motivation-text no-print">Ready to structure your chaos.</div>
                 
                 <div class="scrum-card">
                     <h4>🌅 Yesterday's Wins</h4>
                     <div id="outYesterday" class="editable-div" contenteditable="true">Pending generation...</div>
                 </div>
-                <div class="scrum-card">
+                <div class="scrum-card mt-15">
                     <h4>🎯 Today's Focus</h4>
                     <div id="outToday" class="editable-div" contenteditable="true">Pending generation...</div>
                 </div>
-                <div class="scrum-card">
+                <div class="scrum-card mt-15">
                     <h4>🚧 Blockers</h4>
                     <div id="outBlockers" class="editable-div" contenteditable="true">Pending generation...</div>
                 </div>
                 
-                <div class="action-row no-print mt-15">
-                    <button class="secondary-btn" onclick="UI.copyScrum()">📋 Copy For Scrum</button>
-                    <button class="primary-btn" onclick="window.print()">📄 Print Report</button> 
+                <div class="action-row no-print mt-20">
+                    <button class="secondary-btn haptic-btn" onclick="UI.copyScrum()">📋 Copy For Scrum</button>
+                    <button class="primary-btn haptic-btn" onclick="window.print()">📄 Print Report</button> 
                 </div>
             </div>
 
-            <div id="timesheetView" class="output-box" style="display: none;">
+            <div id="timesheetView" class="output-box mt-15" style="display: none;">
                 <div id="tsTableContainer">
-                    <span class="placeholder-text">Your 8+ hour timesheet will generate here.</span>
+                    <span class="placeholder-text hint-text">Your 8-hour timesheet will generate here.</span>
                 </div>
-                <div class="action-row no-print mt-15">
-                    <button class="primary-btn" onclick="Engine.exportCSV()">⬇️ Download Excel/CSV</button>
+                <div class="action-row no-print mt-20">
+                    <button class="primary-btn haptic-btn" onclick="Engine.exportCSV()">⬇️ Download CSV</button>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="no-print">
-        <div class="legal-links">
-            <a href="#" onclick="UI.openModal('aboutModal')">About Us</a>
-            <a href="#" onclick="UI.openModal('privacyModal')">Privacy Policy</a>
-            <a href="#" onclick="UI.openModal('termsModal')">Terms & Conditions</a>
-        </div>
-        <div class="credit">All rights reserved &copy; 2026 <b>SANRAI</b></div>
-        <div class="ai-disclaimer">SANRAI uses AI and can make mistakes. Please verify generated data.</div>
-    </footer>
-
     <div id="historyModal" class="modal">
         <div class="modal-content large-modal">
             <div class="modal-header">
                 <h3>Data Archive & Search</h3>
-                <button class="close-btn" onclick="UI.closeModal('historyModal')">×</button>
+                <button class="close-btn haptic-btn" onclick="UI.closeModal('historyModal')">×</button>
             </div>
             
             <div class="search-bar-wrapper mb-15">
-                <input type="text" id="universalSearch" class="text-input" placeholder="🔍 Search tasks, dates, or projects..." oninput="Archive.search()">
+                <input type="text" id="universalSearch" class="text-input" placeholder="🔍 Search tasks, keywords..." oninput="Archive.renderList()">
             </div>
             
             <div class="tabs mb-15">
-                <button class="tab-btn active" id="historyTabBtn" onclick="Archive.switchTab('history', this)">Data History</button>
-                <button class="tab-btn" onclick="Archive.switchTab('bin', this)">Recycle Bin</button>
+                <button class="tab-btn active haptic-btn" id="historyTabBtn" onclick="Archive.switchTab('history', this)">Data History</button>
+                <button class="tab-btn haptic-btn" onclick="Archive.switchTab('bin', this)">Recycle Bin</button>
             </div>
 
             <div class="action-row mt-0 mb-15" id="archiveFilters">
-                <button class="secondary-btn" onclick="Archive.filter('today')">Today</button>
-                <button class="secondary-btn" onclick="Archive.filter('yesterday')">Yesterday</button>
-                <button class="secondary-btn" onclick="Archive.filter('week')">Week</button>
-                <button class="secondary-btn" onclick="Archive.filter('all')">All</button>
-                <button class="primary-btn" onclick="Archive.downloadPDF()">📄 Export PDF</button>
+                <button class="secondary-btn haptic-btn" onclick="Archive.filter('today')">Today</button>
+                <button class="secondary-btn haptic-btn" onclick="Archive.filter('yesterday')">Yesterday</button>
+                <button class="secondary-btn haptic-btn" onclick="Archive.filter('week')">Week</button>
+                <button class="secondary-btn haptic-btn" onclick="Archive.filter('all')">All</button>
             </div>
             
             <div id="historyList" class="data-list"></div>
-        </div>
-    </div>
-
-    <div id="aboutModal" class="modal">
-        <div class="modal-content scrollable-modal">
-            <div class="modal-header">
-                <h3>About SANRAI</h3>
-                <button class="close-btn" onclick="UI.closeModal('aboutModal')">×</button>
-            </div>
-            <div class="emotional-text">
-                <h4 class="accent-text">The Administrative Trap</h4>
-                <p>We are tired of seeing brilliant engineers burn out over administrative tasks. You didn't spend years mastering complex algorithms and system architectures just to feel a knot of anxiety every morning at 9:55 AM, frantically searching your git commits to figure out what to say in your 10:00 AM Scrum call.</p>
-                <p>You shouldn't have to sacrifice your Friday evenings, draining your remaining mental energy to remember what you accomplished on Tuesday, just to fill out a soulless corporate spreadsheet that no one actually reads.</p>
-                
-                <h4 class="accent-text">Why We Exist</h4>
-                <p>Indian IT professionals are drowning in context-switching. Between coding, testing, client calls, and endless Slack messages, the actual "work" gets lost in the noise of "reporting the work." This constant shift kills productivity and drains emotional energy.</p>
-                <p>SANRAI was born out of a simple necessity: to give developers their time and focus back. We act as the ultimate buffer—the translator between your chaotic, unstructured, deeply technical workday, and the rigid, polished reporting formats your management demands.</p>
-                
-                <h4 class="accent-text">Our Vision</h4>
-                <p>We envision a future where developers never have to write another timesheet manually. A future where you just talk or dump your thoughts into our engine, and the AI handles the corporate paperwork. Code more. Manage less.</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="privacyModal" class="modal">
-        <div class="modal-content scrollable-modal">
-            <div class="modal-header">
-                <h3>Privacy Policy</h3>
-                <button class="close-btn" onclick="UI.closeModal('privacyModal')">×</button>
-            </div>
-            <div class="legal-text">
-                <h4 class="accent-text">1. Absolute Data Ownership</h4>
-                <p>At SANRAI, we fundamentally believe that your work, your codebase, and your daily notes are your intellectual property. We have designed our architecture to reflect this belief. SANRAI operates purely as a "Local-First" application. This means your workflow data, timesheets, and daily logs are stored strictly within your own browser's LocalStorage. We possess zero backend databases. We cannot see, sell, or analyze your data because we simply do not have it.</p>
-                
-                <h4 class="accent-text">2. The BYOK (Bring Your Own Key) Model</h4>
-                <p>To ensure 100% corporate compliance and bypass stringent IT firewall restrictions, your data is never routed through our servers. When you request AI structuring, your data is processed directly between your browser and the Google Gemini API using your personal or company-provided API key. SANRAI acts merely as the interface, never as a middleman.</p>
-                
-                <h4 class="accent-text">3. Data Lifecycle & The Right to be Forgotten</h4>
-                <p>You have absolute manual control over your data footprint. You can edit, modify, or delete any generated report instantly. Items you choose to delete are moved to a local Recycle Bin to prevent accidental loss, where they are securely held for 90 days before being permanently and irrevocably purged. Furthermore, simply clearing your browser's cache immediately destroys all SANRAI data associated with that browser.</p>
-                
-                <h4 class="accent-text">4. Telemetry and Tracking</h4>
-                <p>We do not use invasive third-party tracking cookies, screen recording scripts, or behavioral analytics that monitor your keystrokes. Our focus is your productivity, not your personal data profile.</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="termsModal" class="modal">
-        <div class="modal-content scrollable-modal">
-            <div class="modal-header">
-                <h3>Terms & Conditions</h3>
-                <button class="close-btn" onclick="UI.closeModal('termsModal')">×</button>
-            </div>
-            <div class="legal-text">
-                <h4 class="accent-text">1. Purpose and Nature of Service</h4>
-                <p>SANRAI is provided as an experimental productivity and workflow automation tool intended strictly to assist IT professionals in drafting and formatting their daily notes. It is not an official system of record. It is the user's sole, unavoidable responsibility to manually review, edit, and verify the absolute accuracy of any AI-generated stand-ups, blocker reports, and timesheets before official submission to their employer, client, or HR department. SANRAI does not guarantee the factual accuracy of AI outputs.</p>
-                
-                <h4 class="accent-text">2. API Usage, Quotas, and Billing</h4>
-                <p>SANRAI functions by utilizing the Google Gemini API via the authentication key provided directly by the user. Therefore, any API usage limits, throttling, quotas, or financial billing charges incurred from Google Cloud Platform are the strict and sole responsibility of the user. We strongly recommend setting strict billing limits and budget alerts within your Google Cloud Console to prevent unexpected charges.</p>
-                
-                <h4 class="accent-text">3. Limitation of Liability</h4>
-                <p>Due to the privacy-centric, local-first architecture of the application, SANRAI is not liable for any data loss caused by routine browser cache clearing, device damage, operating system updates, or user error. We do not offer cloud backups. Users are strongly encouraged to utilize the built-in Export (CSV/PDF) features regularly to maintain personal backups of their timesheets on their local hard drives or corporate cloud storage.</p>
-                
-                <h4 class="accent-text">4. Corporate Compliance</h4>
-                <p>Users are responsible for ensuring that their use of SANRAI, specifically the input of potentially proprietary company information into a third-party AI API (like Gemini), complies with their employer's specific IT security policies, Non-Disclosure Agreements (NDAs), and data handling protocols.</p>
-            </div>
         </div>
     </div>
 
@@ -201,28 +125,26 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>System Setup</h3>
-                <button class="close-btn" onclick="UI.closeModal('settingsModal')">×</button>
+                <button class="close-btn haptic-btn" onclick="UI.closeModal('settingsModal')">×</button>
             </div>
             
             <label class="small-text mb-15">Gemini API Key</label>
             <div class="pwd-wrapper mb-15">
                 <input type="password" id="apiKey" class="text-input" placeholder="Enter secure key here">
-                <button class="eye-btn" onclick="UI.togglePassword()">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                </button>
+                <button class="eye-btn haptic-btn" onclick="UI.togglePassword()">👁️</button>
             </div>
 
             <label class="small-text mb-15">Daily Scrum Time 1 (Morning)</label>
             <input type="time" id="notifTime1" class="text-input mb-15" value="09:00">
 
-            <label class="small-text mb-15">Daily Sync Time 2 (Evening / Optional)</label>
+            <label class="small-text mb-15">Daily Sync Time 2 (Evening)</label>
             <input type="time" id="notifTime2" class="text-input mb-15" value="17:00">
             
-            <button class="primary-btn mt-15" onclick="App.saveSettings()">Save Configuration</button>
+            <button class="primary-btn haptic-btn mt-15" onclick="App.saveSettings()">Save Configuration</button>
             
             <div style="border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px; text-align: center;">
-                <p class="small-text mb-15">Need help understanding how to use SANRAI?</p>
-                <button class="secondary-btn" onclick="App.startTour()">🚀 Start App Tour</button>
+                <p class="small-text mb-15">Need a quick guide?</p>
+                <button class="secondary-btn haptic-btn" onclick="App.startTour()">🚀 Start Visual Tour</button>
             </div>
         </div>
     </div>
