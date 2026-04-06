@@ -462,4 +462,50 @@ const Archive = {
         targetData.forEach(item => {
             list.innerHTML += `
                 <div class="history-item">
-                    <div class="h
+                    <div class="history-date"><span>Work Date: ${item.date}</span></div>
+                    <div class="history-view-content">
+                        <b>Yesterday:</b> ${item.yesterday}<br>
+                        <b>Today:</b> ${item.today}<br>
+                        ${item.blockers && item.blockers !== 'None' ? `<b style="color:var(--danger)">Blockers:</b> ${item.blockers}` : ''}
+                    </div>
+                    <div class="history-actions no-print">
+                        ${Archive.currentTab === 'history' 
+                            ? `<button class="action-btn haptic-btn" onclick="Archive.moveToBin(${item.id})">🗑️ Delete</button>`
+                            : `<button class="action-btn haptic-btn" onclick="Archive.restore(${item.id})">♻️ Restore</button>`}
+                    </div>
+                </div>
+            `;
+        });
+    },
+
+    moveToBin: (id) => {
+        const idx = sanraiData.history.findIndex(i => i.id === id);
+        if(idx > -1) {
+            const item = sanraiData.history.splice(idx, 1)[0];
+            item.deleteDate = Date.now();
+            sanraiData.bin.unshift(item);
+            localStorage.setItem('sanraiData', JSON.stringify(sanraiData));
+            Archive.renderList();
+        }
+    },
+
+    restore: (id) => {
+        const idx = sanraiData.bin.findIndex(i => i.id === id);
+        if(idx > -1) {
+            const item = sanraiData.bin.splice(idx, 1)[0];
+            delete item.deleteDate; 
+            sanraiData.history.unshift(item);
+            localStorage.setItem('sanraiData', JSON.stringify(sanraiData));
+            Archive.renderList();
+        }
+    },
+
+    cleanBin: () => {
+        const now = Date.now();
+        sanraiData.bin = sanraiData.bin.filter(item => (now - item.deleteDate) < (90 * 86400000));
+        localStorage.setItem('sanraiData', JSON.stringify(sanraiData));
+    }
+};
+
+// FIX: Ee line okkati miss avvadam valle neeku app crash ayindi. Idi app ni start chestundi.
+window.onload = App.init;
