@@ -352,7 +352,7 @@ CRITICAL INSTRUCTION: If the audio is completely silent, only contains backgroun
         STEP 1 - TASK EXTRACTION: Identify every single atomic task. Do NOT drop any information.
         STEP 2 - SMART STRUCTURING (FOR SCRUM): Group into concise "YESTERDAY" and "TODAY" (max 3 points each). Keep sentences straightforward.
         STEP 3 - TIMESHEET GENERATION: Allocate hours totaling EXACTLY 8.0. Put explicit tasks first. Dump all remaining hours into a generic row named "General Sprint Tasks / BAU".
-        STEP 4 - VALIDATION: Verify exactly 8.0 hours total and 0 hallucinations.
+        STEP 4 - VALIDATION: Verify exactly 8.0 or user defined hours total and 0 hallucinations.
 
         --- STRICT OUTPUT FORMAT ---
         ===MOTIVATION===
@@ -366,7 +366,7 @@ CRITICAL INSTRUCTION: If the audio is completely silent, only contains backgroun
         ===TIMESHEET===
         Project,Task Description,Hours
         [CSV rows]
-        Total,,8.0`;
+        Total,,8.0 or user defined`;
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
